@@ -1,0 +1,4 @@
+- `[ ]` Create `NetworkState` model
+- `[ ]` Update `BlitzEngine` with native logic (internet check, portal detection)
+- `[ ]` Update `AppState` with repository-level orchestration and SSID matching
+- `[ ]` Verify with `flutter analyze`

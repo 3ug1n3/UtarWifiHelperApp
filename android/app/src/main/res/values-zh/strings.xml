@@ -1,0 +1,59 @@
+<resources>
+    <string name="app_name">U不停歇WIFI助手</string>
+    <string name="tab_status">状态</string>
+    <string name="tab_credentials">账号密码</string>
+    <string name="tab_logs">运行日志</string>
+    <string name="username_hint">学号 / 账号</string>
+    <string name="password_hint">Password</string>
+    <string name="target_ssid">目标WiFi名称</string>
+    <string name="save_credentials">保存账号信息</string>
+    <string name="manual_login">手动一键登录</string>
+    <string name="auto_reconnect">自动后台登录</string>
+    <string name="polling_interval">后台检测间隔</string>
+    <string name="status_ready">已就绪</string>
+    <string name="login_button">登录</string>
+    <string name="credentials_required">需要设置账号</string>
+    <string name="configure_button">去配置</string>
+    <string name="clear_logs">清空日志</string>
+
+    <!-- Wi-Fi Off Alert Banner Strings -->
+    <string name="wifi_off_title">Wi-Fi 未开启 / 离线</string>
+    <string name="wifi_off_desc">请连接校园WiFi (utarwifi) 以使用自动登录功能。</string>
+    <string name="open_wifi_settings">开启WiFi设置</string>
+
+    <!-- Wi-Fi ON (Not Connected) Banner Strings -->
+    <string name="wifi_on_not_connected_title">Wi-Fi 已开启（请选择 utarwifi）</string>
+    <string name="wifi_on_not_connected_desc">Wi-Fi功能已打开。请点击下方在设置中选择 utarwifi 网络。</string>
+    <string name="select_utarwifi">选择 utarwifi</string>
+
+    <!-- Captive Portal Mobile Data Warning Banner Strings -->
+    <string name="portal_warning_title">⚠️ 已连接WiFi — 需要登录门户！</string>
+    <string name="portal_warning_desc">由于WiFi尚未登录网络，移动数据已被系统挂起。点击下方“立即登录”恢复网络。</string>
+    <string name="login_now">立即登录</string>
+    <string name="disconnect_wifi">断开WiFi (恢复移动数据)</string>
+
+    <!-- Biometric Lock Strings -->
+    <string name="biometric_lock">指纹 / 面容安全锁</string>
+    <string name="biometric_lock_desc">连接WiFi或查看密码前需要指纹或锁屏密码验证。</string>
+    <string name="auth_to_connect">验证身份以连接校园WiFi</string>
+    <string name="auth_to_view_credentials">验证身份以查看账号密码</string>
+
+    <!-- Onboarding Guide Strings -->
+    <string name="onboarding_step1_title">欢迎！让我们开始设置。</string>
+    <string name="onboarding_step1_desc">我将引导您完成设置，点击“下一步”开始。</string>
+    <string name="onboarding_step2_title">1. 设置账号信息</string>
+    <string name="onboarding_step2_desc">点击“去配置”或“账号密码”选项卡输入信息。</string>
+    <string name="onboarding_step3_title">2. 输入学号</string>
+    <string name="onboarding_step3_desc">在此处输入您的学号，完成后点击提示框中的“下一步”。</string>
+    <string name="onboarding_step4_title">3. 输入密码</string>
+    <string name="onboarding_step4_desc">在此处输入密码，准备保存时点击提示框中的“下一步”。</string>
+    <string name="onboarding_step5_title">4. 保存设置</string>
+    <string name="onboarding_step5_desc">点击“保存账号信息”锁定您的配置以用于自动登录。</string>
+    <string name="onboarding_step6_title">5. 返回主页</string>
+    <string name="onboarding_step6_desc">数据已保存！现在点击“状态”选项卡返回主界面。</string>
+    <string name="onboarding_step7_title">6. 开启自动后台保护</string>
+    <string name="onboarding_step7_desc">最后，开启此开关即可启动后台自动登录服务！</string>
+    <string name="onboarding_step8_title">一切准备就绪！</string>
+    <string name="onboarding_step8_desc">应用现已正常运行，将在所有教学楼为您自动登录！</string>
+    <string name="replay_tour">重播指引</string>
+</resources>

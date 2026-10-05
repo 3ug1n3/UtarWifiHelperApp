@@ -1,0 +1,47 @@
+# Android / Gradle Build Artifacts
+build/
+.gradle/
+.idea/
+.vscode/
+.artifacts/
+*.hprof
+*.keystore
+*.aab
+*.apk
+local.properties
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Nuitka Build directories & artifacts
+utarwifihelper.build/
+utarwifihelper.dist/
+utarwifihelper.onefile-build/
+
+# Compiled Executables
+*.exe
+
+# Private credentials configuration
+config.json
+
+# Temporary files
+*.tmp
+*.log
+*.manifest
+*.res
+*.obj
+
+# Scratch folder
+scratch/
+
+# Flutter / Temp
+utar_wifi_flutter/.dart_tool/
+utar_wifi_flutter/build/
+utar_wifi_flutter/.artifacts/

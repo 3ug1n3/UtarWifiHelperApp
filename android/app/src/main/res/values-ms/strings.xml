@@ -1,0 +1,59 @@
+<resources>
+    <string name="app_name">U不停歇WIFI助手</string>
+    <string name="tab_status">Status</string>
+    <string name="tab_credentials">Kredensial</string>
+    <string name="tab_logs">Log</string>
+    <string name="username_hint">ID Pelajar / Pengguna</string>
+    <string name="password_hint">Kata Laluan</string>
+    <string name="target_ssid">SSID WiFi Sasaran</string>
+    <string name="save_credentials">Simpan Kredensial</string>
+    <string name="manual_login">Log Masuk Manual</string>
+    <string name="auto_reconnect">Log Masuk Automatik</string>
+    <string name="polling_interval">Selang Masa Semakan</string>
+    <string name="status_ready">Sedia</string>
+    <string name="login_button">Log Masuk</string>
+    <string name="credentials_required">Kredensial Diperlukan</string>
+    <string name="configure_button">Konfigurasi</string>
+    <string name="clear_logs">Padam Log</string>
+
+    <!-- Wi-Fi Off Alert Banner Strings -->
+    <string name="wifi_off_title">WiFi Nyahaktif / Luar Talian</string>
+    <string name="wifi_off_desc">Sila sambung ke WiFi kampus (utarwifi) untuk log masuk.</string>
+    <string name="open_wifi_settings">Buka Tetapan WiFi</string>
+
+    <!-- Wi-Fi ON (Not Connected) Banner Strings -->
+    <string name="wifi_on_not_connected_title">WiFi Aktif (Pilih \'utarwifi\')</string>
+    <string name="wifi_on_not_connected_desc">Fungsi WiFi dihidupkan. Tekan di bawah untuk memilih \'utarwifi\' dalam tetapan.</string>
+    <string name="select_utarwifi">Pilih \'utarwifi\'</string>
+
+    <!-- Captive Portal Mobile Data Warning Banner Strings -->
+    <string name="portal_warning_title">⚠️ WiFi Disambung — Log Masuk Diperlukan!</string>
+    <string name="portal_warning_desc">Data mudah alih dijedakan kerana WiFi tidak mempunyai internet. Tekan \'Log Masuk Sekarang\' untuk pulihkan internet.</string>
+    <string name="login_now">Log Masuk Sekarang</string>
+    <string name="disconnect_wifi">Putuskan WiFi</string>
+
+    <!-- Biometric Lock Strings -->
+    <string name="biometric_lock">Kunci Keselamatan Biometrik</string>
+    <string name="biometric_lock_desc">Pengesahan Cap Jari / PIN diperlukan sebelum menyambung WiFi atau melihat kata laluan.</string>
+    <string name="auth_to_connect">Sahkan identiti untuk menyambung WiFi</string>
+    <string name="auth_to_view_credentials">Sahkan identiti untuk melihat kredensial</string>
+
+    <!-- Onboarding Guide Strings -->
+    <string name="onboarding_step1_title">Selamat Datang! Mari Mula Tetapan.</string>
+    <string name="onboarding_step1_desc">Saya akan membimbing anda. Tekan \'Seterusnya\' untuk bermula.</string>
+    <string name="onboarding_step2_title">1. Tetapan Butiran</string>
+    <string name="onboarding_step2_desc">Tekan \'Konfigurasi\' atau tab \'Kredensial\' untuk memasukkan butiran.</string>
+    <string name="onboarding_step3_title">2. ID Pelajar</string>
+    <string name="onboarding_step3_desc">Taip ID Pelajar anda di sini. Tekan \'Seterusnya\' apabila selesai.</string>
+    <string name="onboarding_step4_title">3. Kata Laluan</string>
+    <string name="onboarding_step4_desc">Taip Kata Laluan anda di sini. Tekan \'Seterusnya\' untuk menyimpan.</string>
+    <string name="onboarding_step5_title">4. Simpan Kredensial</string>
+    <string name="onboarding_step5_desc">Tekan \'Simpan Kredensial\' untuk mengunci butiran anda.</string>
+    <string name="onboarding_step6_title">5. Kembali</string>
+    <string name="onboarding_step6_desc">Data disimpan! Tekan tab \'Status\' untuk kembali ke papan pemuka.</string>
+    <string name="onboarding_step7_title">6. Aktifkan Perlindungan</string>
+    <string name="onboarding_step7_desc">Akhir sekali, hidupkan suis ini untuk memulakan perlindungan automatik!</string>
+    <string name="onboarding_step8_title">Anda Telah Bersedia!</string>
+    <string name="onboarding_step8_desc">Aplikasi kini berfungsi secara automatik di semua blok!</string>
+    <string name="replay_tour">Main Semula Panduan</string>
+</resources>

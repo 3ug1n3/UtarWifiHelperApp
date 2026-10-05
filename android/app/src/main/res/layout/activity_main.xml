@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <!-- Login Form Mode -->
+    <LinearLayout
+        android:id="@+id/loginForm"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="32dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sign in to Campus WiFi"
+            android:textColor="#1A1A1A"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginTop="12dp" />
+
+        <View
+            android:layout_width="160dp"
+            android:layout_height="2dp"
+            android:background="#1D4B9E"
+            android:layout_gravity="center"
+            android:layout_marginTop="8dp" />
+
+        <EditText
+            android:id="@+id/username"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="Login ID"
+            android:background="@android:drawable/edit_text"
+            android:paddingLeft="12dp"
+            android:layout_marginTop="48dp"
+            android:singleLine="true" />
+
+        <EditText
+            android:id="@+id/password"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="Password"
+            android:inputType="textPassword"
+            android:background="@android:drawable/edit_text"
+            android:paddingLeft="12dp"
+            android:layout_marginTop="12dp"
+            android:singleLine="true" />
+
+        <Button
+            android:id="@+id/loginButton"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Log In"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#1D4B9E"
+            android:layout_marginTop="24dp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/loginStatusText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_marginTop="24dp"
+            android:textColor="#444444"
+            android:textSize="14sp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Open Source on GitHub • Developed by @khor0000\nNot affiliated with campus authorities"
+            android:gravity="center"
+            android:textColor="#999999"
+            android:textSize="12sp"
+            android:layout_marginBottom="8dp" />
+    </LinearLayout>
+
+    <!-- Progress Mode -->
+    <LinearLayout
+        android:id="@+id/progressView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="32dp"
+        android:visibility="visible">
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:indeterminateTint="#1D4B9E"
+            android:layout_marginBottom="24dp" />
+
+        <TextView
+            android:id="@+id/progressStatusText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Checking internet..."
+            android:textColor="#444444"
+            android:textSize="16sp"
+            android:lineSpacingExtra="4dp" />
+
+        <Button
+            android:id="@+id/retryButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Retry Connection"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#1D4B9E"
+            android:layout_marginTop="32dp"
+            android:visibility="gone" />
+    </LinearLayout>
+
+</FrameLayout>

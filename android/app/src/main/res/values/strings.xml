@@ -1,0 +1,59 @@
+<resources>
+    <string name="app_name">U不停歇WIFI助手</string>
+    <string name="tab_status">Status</string>
+    <string name="tab_credentials">Credentials</string>
+    <string name="tab_logs">Logs</string>
+    <string name="username_hint">Login ID / Student ID</string>
+    <string name="password_hint">Password</string>
+    <string name="target_ssid">Target WiFi SSID</string>
+    <string name="save_credentials">Save Credentials</string>
+    <string name="manual_login">Manual Login Push</string>
+    <string name="auto_reconnect">Auto-Reconnect</string>
+    <string name="polling_interval">Background Polling Interval</string>
+    <string name="status_ready">Ready</string>
+    <string name="login_button">Login</string>
+    <string name="credentials_required">Credentials Required</string>
+    <string name="configure_button">Configure</string>
+    <string name="clear_logs">Clear Logs</string>
+
+    <!-- Wi-Fi Off Alert Banner Strings -->
+    <string name="wifi_off_title">Wi-Fi Disabled / Offline</string>
+    <string name="wifi_off_desc">Connect to campus Wi-Fi (utarwifi) to access auto-login features.</string>
+    <string name="open_wifi_settings">Open Wi-Fi Settings</string>
+
+    <!-- Wi-Fi ON (Not Connected) Banner Strings -->
+    <string name="wifi_on_not_connected_title">Wi-Fi is ON (Select \'utarwifi\')</string>
+    <string name="wifi_on_not_connected_desc">Wi-Fi adapter is active. Tap below to select \'utarwifi\' in Wi-Fi settings.</string>
+    <string name="select_utarwifi">Select \'utarwifi\'</string>
+
+    <!-- Captive Portal Mobile Data Warning Banner Strings -->
+    <string name="portal_warning_title">⚠️ Wi-Fi Connected — Login Required!</string>
+    <string name="portal_warning_desc">Mobile data is paused by Android because Wi-Fi is connected without internet. Tap \'Login Now\' to restore internet immediately.</string>
+    <string name="login_now">Login Now</string>
+    <string name="disconnect_wifi">Disconnect Wi-Fi</string>
+
+    <!-- Biometric Lock Strings -->
+    <string name="biometric_lock">Biometric Security Lock</string>
+    <string name="biometric_lock_desc">Require Fingerprint / PIN authentication before connecting to WiFi or viewing password.</string>
+    <string name="auth_to_connect">Verify identity to connect to Wi-Fi</string>
+    <string name="auth_to_view_credentials">Verify identity to access credentials</string>
+
+    <!-- Onboarding Guide Strings -->
+    <string name="onboarding_step1_title">Welcome! Let\'s get set up.</string>
+    <string name="onboarding_step1_desc">I\'ll guide you through the setup. Tap \'Next\' to start.</string>
+    <string name="onboarding_step2_title">1. Setup Details</string>
+    <string name="onboarding_step2_desc">Tap \'Configure\' or the \'Credentials\' tab to enter your details.</string>
+    <string name="onboarding_step3_title">2. Student ID</string>
+    <string name="onboarding_step3_desc">Type your Student ID here. Tap \'Next\' when finished.</string>
+    <string name="onboarding_step4_title">3. Password</string>
+    <string name="onboarding_step4_desc">Type your Password here. Tap \'Next\' when ready to save.</string>
+    <string name="onboarding_step5_title">4. Save Credentials</string>
+    <string name="onboarding_step5_desc">Tap \'Save Credentials\' to lock in your details for auto-login.</string>
+    <string name="onboarding_step6_title">5. Go Back</string>
+    <string name="onboarding_step6_desc">Data saved! Now tap the \'Status\' tab to return to dashboard.</string>
+    <string name="onboarding_step7_title">6. Activate Protection</string>
+    <string name="onboarding_step7_desc">Finally, toggle this switch ON to start background auto-login!</string>
+    <string name="onboarding_step8_title">You\'re All Set!</string>
+    <string name="onboarding_step8_desc">The app is now running. It will log you in automatically in all blocks!</string>
+    <string name="replay_tour">Replay Guide</string>
+</resources>
