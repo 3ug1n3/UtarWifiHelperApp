@@ -488,8 +488,8 @@ private fun formatDate(timestamp: Long): String {
 @Composable
 fun AdBannerView(
     modifier: Modifier = Modifier,
-    // Sample AdMob Banner Ad Unit ID (Replace string with your live AdMob Banner Ad Unit ID in production)
-    adUnitId: String = "ca-app-pub-3940256099942544/6300978111"
+    // Live AdMob Banner Ad Unit ID
+    adUnitId: String = "ca-app-pub-9942249708634262/1850707016"
 ) {
     AndroidView(
         modifier = modifier.fillMaxWidth(),

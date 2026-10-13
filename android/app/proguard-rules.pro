@@ -18,3 +18,8 @@
 -dontwarn okio.**
 -keep class okhttp3.** { *; }
 -keep class kotlinx.coroutines.** { *; }
+
+# Compose, AdMob & Biometrics Keep Rules
+-keep class androidx.compose.** { *; }
+-keep class com.google.android.gms.ads.** { *; }
+-keep class androidx.biometric.** { *; }
