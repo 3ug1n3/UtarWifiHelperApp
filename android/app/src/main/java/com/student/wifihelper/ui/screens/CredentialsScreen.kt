@@ -56,6 +56,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.student.wifihelper.data.model.UserConfig
 import com.student.wifihelper.ui.theme.ProOutline
+import com.student.wifihelper.ui.theme.ProPurpleContainer
+import com.student.wifihelper.ui.theme.ProPurpleOnContainer
 import com.student.wifihelper.ui.theme.ProPurplePrimary
 import kotlinx.coroutines.launch
 
@@ -229,74 +231,34 @@ fun CredentialsScreen(
             }
         }
 
+        // Auto-Login Behavior Card hidden temporarily for Gamified Points redesign
         Card(
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            colors = CardDefaults.cardColors(containerColor = ProPurpleContainer.copy(alpha = 0.35f)),
             shape = RoundedCornerShape(20.dp),
             border = androidx.compose.foundation.BorderStroke(1.dp, ProOutline),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Column(
+            Row(
                 modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Auto-Login Behavior",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    color = MaterialTheme.colorScheme.onBackground
+                    text = "🎮",
+                    fontSize = 28.sp
                 )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Enable Auto-Login", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
-                        Text(
-                            "Automatically detect captive portal and submit login request.",
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Switch(
-                        checked = autoLoginEnabled,
-                        onCheckedChange = { autoLoginEnabled = it },
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color.White,
-                            checkedTrackColor = ProPurplePrimary
-                        )
-                    )
-                }
-
+                Spacer(modifier = Modifier.width(14.dp))
                 Column {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                Icons.Default.Timer,
-                                contentDescription = null,
-                                tint = ProPurplePrimary,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("Background Polling Interval", fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                        }
-                        Text("$pollingInterval seconds", fontWeight = FontWeight.Bold, color = ProPurplePrimary)
-                    }
-
-                    Slider(
-                        value = pollingInterval.toFloat(),
-                        onValueChange = { pollingInterval = it.toInt() },
-                        valueRange = 10f..120f,
-                        steps = 10,
-                        colors = SliderDefaults.colors(
-                            thumbColor = ProPurplePrimary,
-                            activeTrackColor = ProPurplePrimary
-                        ),
-                        modifier = Modifier.padding(top = 8.dp)
+                    Text(
+                        text = "Gamified Auto-Connect Coming Soon",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                        color = ProPurplePrimary
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "Earn points by playing mini-games to unlock background auto-connect time!",
+                        fontSize = 12.sp,
+                        color = ProPurpleOnContainer
                     )
                 }
             }

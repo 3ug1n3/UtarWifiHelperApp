@@ -101,6 +101,23 @@ fun DashboardScreen(
             onPerformLogin = onPerformLogin
         )
 
+        // Ad Banner placed between Wi-Fi Status card and Login Button
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            shape = RoundedCornerShape(16.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, ProOutline),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                AdBannerView()
+            }
+        }
+
         // Wi-Fi Disabled In-Page Banner Box Card
         if (networkState is NetworkState.WifiDisabled) {
             val context = androidx.compose.ui.platform.LocalContext.current
@@ -211,51 +228,7 @@ fun DashboardScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.Bolt,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column {
-                            Text(
-                                text = "Auto-Reconnect",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp,
-                                color = MaterialTheme.colorScheme.onBackground
-                            )
-                            Text(
-                                text = "Silent background login (${config?.pollingIntervalSeconds ?: 30}s polling)",
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-
-                    Switch(
-                        checked = config?.autoLoginEnabled == true,
-                        onCheckedChange = onToggleService,
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color.White,
-                            checkedTrackColor = ProPurplePrimary,
-                            uncheckedThumbColor = Color.Gray,
-                            uncheckedTrackColor = ProOutline
-                        ),
-                        modifier = Modifier.onGloballyPositioned { coords ->
-                            onSwitchPositioned(Rect(coords.positionInRoot(), coords.size.toSize()))
-                        }
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
+                // Auto-Reconnect switch hidden temporarily for upcoming Gamified Points redesign
                 Button(
                     onClick = onPerformLogin,
                     enabled = !isLoading,
