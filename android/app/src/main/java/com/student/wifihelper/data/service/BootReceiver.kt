@@ -16,7 +16,8 @@ class BootReceiver : BroadcastReceiver() {
                 try {
                     val repository = UtarApplication.instance.repository
                     val config = repository.getConfig()
-                    if (config.autoLoginEnabled) {
+                    // On Android 15+ (API 35+), direct foreground service start from BOOT_COMPLETED receiver is restricted
+                    if (config.autoLoginEnabled && android.os.Build.VERSION.SDK_INT < 35) {
                         UtarWifiService.startService(context)
                     }
                 } catch (e: Exception) {}

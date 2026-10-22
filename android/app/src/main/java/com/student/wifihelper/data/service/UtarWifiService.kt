@@ -267,11 +267,15 @@ class UtarWifiService : Service() {
         val isServiceRunning: StateFlow<Boolean> = _isServiceRunning.asStateFlow()
 
         fun startService(context: Context) {
-            val intent = Intent(context, UtarWifiService::class.java).apply { action = ACTION_START }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(intent)
-            } else {
-                context.startService(intent)
+            try {
+                val intent = Intent(context, UtarWifiService::class.java).apply { action = ACTION_START }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(intent)
+                } else {
+                    context.startService(intent)
+                }
+            } catch (e: Exception) {
+                // Safely handle ForegroundServiceStartNotAllowedException on Android 15+
             }
         }
 
