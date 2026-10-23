@@ -101,7 +101,7 @@ fun DashboardScreen(
             onPerformLogin = onPerformLogin
         )
 
-        // Ad Banner placed between Wi-Fi Status card and Login Button
+        // Middle Ad Banner placed between Wi-Fi Status card and Login Button
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(16.dp),
@@ -114,7 +114,7 @@ fun DashboardScreen(
                     .padding(8.dp),
                 contentAlignment = Alignment.Center
             ) {
-                AdBannerView()
+                AdBannerView(adUnitId = "ca-app-pub-9942249708634262/3295983760")
             }
         }
 
