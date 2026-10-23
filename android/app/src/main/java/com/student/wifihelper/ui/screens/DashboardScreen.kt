@@ -255,7 +255,7 @@ fun DashboardScreen(
             }
         }
 
-        // AdMob Banner Container (Monetization Space)
+        // Bottom AdMob Banner Container
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
             shape = RoundedCornerShape(16.dp),
@@ -268,7 +268,7 @@ fun DashboardScreen(
                     .padding(8.dp),
                 contentAlignment = Alignment.Center
             ) {
-                AdBannerView()
+                AdBannerView(adUnitId = "ca-app-pub-9942249708634262/1850707016")
             }
         }
     }
