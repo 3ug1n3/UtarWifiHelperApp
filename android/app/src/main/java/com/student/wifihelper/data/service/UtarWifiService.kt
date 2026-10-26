@@ -112,25 +112,7 @@ class UtarWifiService : Service() {
     }
 
     private fun updateNotification(text: String) {
-        val notificationIntent = Intent(this, MainActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(
-            this,
-            0,
-            notificationIntent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
-
-        val notification = NotificationCompat.Builder(this, UtarApplication.CHANNEL_ID)
-            .setContentTitle("U不停歇WIFI助手")
-            .setContentText(text)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setContentIntent(pendingIntent)
-            .setOngoing(true)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .build()
-
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
-        notificationManager.notify(NOTIFICATION_ID, notification)
+        // Notification updates disabled per user feedback
     }
 
     private fun registerNetworkCallback() {

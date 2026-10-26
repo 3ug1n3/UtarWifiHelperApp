@@ -136,7 +136,6 @@ fun UtarApp(
             Manifest.permission.ACCESS_COARSE_LOCATION
         )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
             permissionsToRequest.add(Manifest.permission.NEARBY_WIFI_DEVICES)
         }
         permissionLauncher.launch(permissionsToRequest.toTypedArray())
@@ -174,11 +173,11 @@ fun UtarApp(
                                     modifier = Modifier
                                         .size(8.dp)
                                         .clip(CircleShape)
-                                        .background(if (isServiceRunning) StatusGreen else Color.Gray)
+                                        .background(StatusGreen)
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
-                                    text = if (isServiceRunning) "ACTIVE FOREGROUND SERVICE" else "SERVICE IDLE",
+                                    text = "CAMPUS WIFI HELPER",
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
                                     letterSpacing = 0.5.sp,
