@@ -30,7 +30,11 @@ class UtarApplication : Application() {
         )
 
         try {
-            confessionRepository = com.student.wifihelper.data.repository.FirebaseConfessionRepository()
+            if (com.google.firebase.FirebaseApp.getApps(this).isNotEmpty()) {
+                confessionRepository = com.student.wifihelper.data.repository.FirebaseConfessionRepository()
+            } else {
+                confessionRepository = com.student.wifihelper.data.repository.LocalConfessionRepository(this)
+            }
         } catch (e: Exception) {
             confessionRepository = com.student.wifihelper.data.repository.LocalConfessionRepository(this)
         }

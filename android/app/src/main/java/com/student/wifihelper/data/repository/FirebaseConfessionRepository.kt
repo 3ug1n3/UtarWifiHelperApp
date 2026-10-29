@@ -33,66 +33,71 @@ class FirebaseConfessionRepository : ConfessionRepository {
     }
 
     override fun getConfessionsFlow(): Flow<List<Confession>> = callbackFlow {
-        val listener = firestore.collection("confessions")
-            .orderBy("timestamp", Query.Direction.DESCENDING)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    trySend(emptyList())
-                    return@addSnapshotListener
-                }
+        val listener = try {
+            firestore.collection("confessions")
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        trySend(emptyList())
+                        return@addSnapshotListener
+                    }
 
-                if (snapshot != null) {
-                    val bookmarks = getBookmarkedIds()
-                    val list = snapshot.documents.mapNotNull { doc ->
-                        try {
-                            val id = doc.getString("id") ?: doc.id
-                            val confessionNumber = doc.getLong("confessionNumber")?.toInt() ?: 1000
-                            val content = doc.getString("content") ?: ""
-                            val categoryStr = doc.getString("category") ?: ConfessionCategory.GENERAL.name
-                            val category = try {
-                                ConfessionCategory.valueOf(categoryStr)
+                    if (snapshot != null) {
+                        val bookmarks = getBookmarkedIds()
+                        val list = snapshot.documents.mapNotNull { doc ->
+                            try {
+                                val id = doc.getString("id") ?: doc.id
+                                val confessionNumber = doc.getLong("confessionNumber")?.toInt() ?: 1000
+                                val content = doc.getString("content") ?: ""
+                                val categoryStr = doc.getString("category") ?: ConfessionCategory.GENERAL.name
+                                val category = try {
+                                    ConfessionCategory.valueOf(categoryStr)
+                                } catch (e: Exception) {
+                                    ConfessionCategory.GENERAL
+                                }
+                                val timestamp = doc.getLong("timestamp") ?: System.currentTimeMillis()
+                                val likesCount = doc.getLong("likesCount")?.toInt() ?: 0
+                                val reportCount = doc.getLong("reportCount")?.toInt() ?: 0
+                                val commentsCount = doc.getLong("commentsCount")?.toInt() ?: 0
+                                val imageUrl = doc.getString("imageUrl")
+
+                                val pollMap = doc.get("poll") as? Map<*, *>
+                                val poll = if (pollMap != null) {
+                                    val question = pollMap["question"] as? String ?: ""
+                                    val options = (pollMap["options"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList()
+                                    val voteCounts = (pollMap["voteCounts"] as? List<*>)?.mapNotNull { (it as? Long)?.toInt() } ?: emptyList()
+                                    val votedIndex = prefs.getInt("key_voted_$id", -1).takeIf { it >= 0 }
+                                    ConfessionPoll(question, options, voteCounts, votedIndex)
+                                } else null
+
+                                Confession(
+                                    id = id,
+                                    confessionNumber = confessionNumber,
+                                    content = content,
+                                    category = category,
+                                    timestamp = timestamp,
+                                    likesCount = likesCount,
+                                    isLikedByMe = false,
+                                    reportCount = reportCount,
+                                    commentsCount = commentsCount,
+                                    imageUrl = imageUrl,
+                                    isBookmarkedByMe = bookmarks.contains(id),
+                                    poll = poll
+                                )
                             } catch (e: Exception) {
-                                ConfessionCategory.GENERAL
+                                null
                             }
-                            val timestamp = doc.getLong("timestamp") ?: System.currentTimeMillis()
-                            val likesCount = doc.getLong("likesCount")?.toInt() ?: 0
-                            val reportCount = doc.getLong("reportCount")?.toInt() ?: 0
-                            val commentsCount = doc.getLong("commentsCount")?.toInt() ?: 0
-                            val imageUrl = doc.getString("imageUrl")
+                        }.filter { it.reportCount < 5 }
 
-                            val pollMap = doc.get("poll") as? Map<*, *>
-                            val poll = if (pollMap != null) {
-                                val question = pollMap["question"] as? String ?: ""
-                                val options = (pollMap["options"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList()
-                                val voteCounts = (pollMap["voteCounts"] as? List<*>)?.mapNotNull { (it as? Long)?.toInt() } ?: emptyList()
-                                val votedIndex = prefs.getInt("key_voted_$id", -1).takeIf { it >= 0 }
-                                ConfessionPoll(question, options, voteCounts, votedIndex)
-                            } else null
-
-                            Confession(
-                                id = id,
-                                confessionNumber = confessionNumber,
-                                content = content,
-                                category = category,
-                                timestamp = timestamp,
-                                likesCount = likesCount,
-                                isLikedByMe = false,
-                                reportCount = reportCount,
-                                commentsCount = commentsCount,
-                                imageUrl = imageUrl,
-                                isBookmarkedByMe = bookmarks.contains(id),
-                                poll = poll
-                            )
-                        } catch (e: Exception) {
-                            null
-                        }
-                    }.filter { it.reportCount < 5 }
-
-                    trySend(list)
+                        trySend(list)
+                    }
                 }
-            }
+        } catch (e: Exception) {
+            trySend(emptyList())
+            null
+        }
 
-        awaitClose { listener.remove() }
+        awaitClose { listener?.remove() }
     }
 
     private suspend fun uploadImageToStorage(imageUriString: String): String? {
