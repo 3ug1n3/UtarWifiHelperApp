@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "319861102746",
+    "project_id": "utarconfession-38b6b",
+    "storage_bucket": "utarconfession-38b6b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:319861102746:android:77c08257d33ade57a16723",
+        "android_client_info": {
+          "package_name": "com.student.wifihelper"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCiPwyWOeDkquPPKFuK5K13NFQ7klLxscg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:319861102746:android:77c08257d33ade57a16723",
+        "android_client_info": {
+          "package_name": "com.student.utarconfession"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCiPwyWOeDkquPPKFuK5K13NFQ7klLxscg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
