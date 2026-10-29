@@ -9,6 +9,7 @@ import com.student.wifihelper.data.model.ConfessionPoll
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.UUID
@@ -132,14 +133,15 @@ class LocalConfessionRepository(context: Context) : ConfessionRepository {
         return Result.success(Unit)
     }
 
-    private val commentsMap = mutableMapOf<String, MutableList<ConfessionComment>>()
+    private val commentsStateFlow = MutableStateFlow<Map<String, List<ConfessionComment>>>(emptyMap())
 
     override fun getCommentsFlow(confessionId: String): Flow<List<ConfessionComment>> {
-        return kotlinx.coroutines.flow.flowOf(commentsMap[confessionId] ?: emptyList())
+        return commentsStateFlow.map { mapData -> mapData[confessionId] ?: emptyList() }
     }
 
     override suspend fun addComment(confessionId: String, content: String): Result<Unit> {
-        val commentList = commentsMap.getOrPut(confessionId) { mutableListOf() }
+        val currentMap = commentsStateFlow.value.toMutableMap()
+        val commentList = (currentMap[confessionId] ?: emptyList()).toMutableList()
         commentList.add(
             ConfessionComment(
                 id = UUID.randomUUID().toString(),
@@ -148,6 +150,9 @@ class LocalConfessionRepository(context: Context) : ConfessionRepository {
                 timestamp = System.currentTimeMillis()
             )
         )
+        currentMap[confessionId] = commentList
+        commentsStateFlow.value = currentMap
+
         val updatedConfessions = _confessionsFlow.value.map { item ->
             if (item.id == confessionId) {
                 item.copy(commentsCount = item.commentsCount + 1)
