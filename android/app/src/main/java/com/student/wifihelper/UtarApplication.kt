@@ -14,6 +14,9 @@ class UtarApplication : Application() {
     lateinit var repository: UtarRepository
         private set
 
+    lateinit var confessionRepository: com.student.wifihelper.data.repository.ConfessionRepository
+        private set
+
     override fun onCreate() {
         super.onCreate()
         instance = this
@@ -25,6 +28,12 @@ class UtarApplication : Application() {
             logDao = database.logDao(),
             portalDao = database.portalDao()
         )
+
+        try {
+            confessionRepository = com.student.wifihelper.data.repository.FirebaseConfessionRepository()
+        } catch (e: Exception) {
+            confessionRepository = com.student.wifihelper.data.repository.LocalConfessionRepository(this)
+        }
 
         createNotificationChannel()
 

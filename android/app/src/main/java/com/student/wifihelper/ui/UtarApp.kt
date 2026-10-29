@@ -54,8 +54,10 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import com.student.wifihelper.ui.components.OnboardingOverlay
 import com.student.wifihelper.ui.components.OnboardingTarget
+import com.student.wifihelper.ui.screens.ConfessionScreen
 import com.student.wifihelper.ui.screens.CredentialsScreen
 import com.student.wifihelper.ui.screens.DashboardScreen
 import com.student.wifihelper.ui.screens.LogsScreen
@@ -66,7 +68,8 @@ import com.student.wifihelper.ui.theme.StatusGreen
 
 enum class AppTab(val title: String, val icon: ImageVector) {
     DASHBOARD("Status", Icons.Default.Dashboard),
-    CREDENTIALS("Credentials", Icons.Default.VpnKey)
+    CREDENTIALS("Credentials", Icons.Default.VpnKey),
+    CONFESSIONS("Confessions", Icons.Outlined.ChatBubbleOutline)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -292,6 +295,7 @@ fun UtarApp(
                     onPasswordPositioned = { passwordFieldRect = it },
                     onSavePositioned = { saveButtonRect = it }
                 )
+                AppTab.CONFESSIONS -> ConfessionScreen()
             }
         }
     }
