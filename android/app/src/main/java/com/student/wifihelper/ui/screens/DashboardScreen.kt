@@ -35,9 +35,14 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.clickable
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.student.wifihelper.ui.games.GameCenterScreen
 import androidx.compose.material3.Text
 import androidx.compose.ui.viewinterop.AndroidView
 import com.google.android.gms.ads.AdRequest
@@ -86,6 +91,8 @@ fun DashboardScreen(
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
+    var isGameCenterOpen by remember { mutableStateOf(false) }
+    var userPoints by remember { mutableIntStateOf(150) }
 
     Column(
         modifier = modifier
@@ -228,7 +235,48 @@ fun DashboardScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                // Auto-Reconnect switch hidden temporarily for upcoming Gamified Points redesign
+                // Game Center & Points Entrance Card
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = ProPurpleContainer),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                        .clickable { isGameCenterOpen = true }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(text = "🎮", fontSize = 22.sp)
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = "UTAR Mini-Game Center",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = ProPurpleOnContainer
+                                )
+                                Text(
+                                    text = "⭐ $userPoints Points • Play 4 games to earn points!",
+                                    fontSize = 11.sp,
+                                    color = ProPurpleOnContainer.copy(alpha = 0.8f)
+                                )
+                            }
+                        }
+
+                        Button(
+                            onClick = { isGameCenterOpen = true },
+                            colors = ButtonDefaults.buttonColors(containerColor = ProPurplePrimary),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Text("Play Games", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+
                 Button(
                     onClick = onPerformLogin,
                     enabled = !isLoading,
@@ -271,6 +319,19 @@ fun DashboardScreen(
                 AdBannerView(adUnitId = "ca-app-pub-9942249708634262/1850707016")
             }
         }
+    }
+
+    if (isGameCenterOpen) {
+        GameCenterScreen(
+            userPoints = userPoints,
+            onAddPoints = { userPoints += it },
+            onRedeemOffer = { offer ->
+                if (userPoints >= offer.pointsCost) {
+                    userPoints -= offer.pointsCost
+                }
+            },
+            onDismiss = { isGameCenterOpen = false }
+        )
     }
 }
 
