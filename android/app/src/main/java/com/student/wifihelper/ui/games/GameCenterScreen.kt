@@ -53,23 +53,16 @@ import com.student.wifihelper.ui.theme.ProPurpleOnContainer
 import com.student.wifihelper.ui.theme.ProPurplePrimary
 import com.student.wifihelper.ui.theme.StatusGreen
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GameCenterScreen(
     userPoints: Int,
     onAddPoints: (points: Int) -> Unit,
-    onRedeemOffer: (offer: AutoConnectRedemptionOffer) -> Unit,
-    onDismiss: () -> Unit
+    onRedeemOffer: (offer: AutoConnectRedemptionOffer) -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val context = LocalContext.current
     var activeGame by remember { mutableStateOf<MiniGameType?>(null) }
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         if (activeGame != null) {
             when (activeGame) {
                 MiniGameType.ROUTER_THROW -> RouterThrowGame(
@@ -130,9 +123,6 @@ fun GameCenterScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                    }
-                    IconButton(onClick = onDismiss) {
-                        Icon(imageVector = Icons.Default.Close, contentDescription = "Close")
                     }
                 }
 

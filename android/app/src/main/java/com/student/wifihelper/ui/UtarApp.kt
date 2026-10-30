@@ -37,6 +37,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -55,8 +56,10 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
+import androidx.compose.material.icons.outlined.SportsEsports
 import com.student.wifihelper.ui.components.OnboardingOverlay
 import com.student.wifihelper.ui.components.OnboardingTarget
+import com.student.wifihelper.ui.games.GameCenterScreen
 import com.student.wifihelper.ui.screens.ConfessionScreen
 import com.student.wifihelper.ui.screens.CredentialsScreen
 import com.student.wifihelper.ui.screens.DashboardScreen
@@ -69,7 +72,8 @@ import com.student.wifihelper.ui.theme.StatusGreen
 enum class AppTab(val title: String, val icon: ImageVector) {
     DASHBOARD("Status", Icons.Default.Dashboard),
     CREDENTIALS("Credentials", Icons.Default.VpnKey),
-    CONFESSIONS("Confessions", Icons.Outlined.ChatBubbleOutline)
+    CONFESSIONS("Confessions", Icons.Outlined.ChatBubbleOutline),
+    GAMES("Games", Icons.Outlined.SportsEsports)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,6 +82,7 @@ fun UtarApp(
     viewModel: UtarViewModel = viewModel()
 ) {
     var selectedTab by remember { mutableStateOf(AppTab.DASHBOARD) }
+    var userPoints by remember { mutableIntStateOf(150) }
 
     val config by viewModel.configState.collectAsState()
     val logs by viewModel.logsState.collectAsState()
@@ -296,6 +301,15 @@ fun UtarApp(
                     onSavePositioned = { saveButtonRect = it }
                 )
                 AppTab.CONFESSIONS -> ConfessionScreen()
+                AppTab.GAMES -> GameCenterScreen(
+                    userPoints = userPoints,
+                    onAddPoints = { userPoints += it },
+                    onRedeemOffer = { offer ->
+                        if (userPoints >= offer.pointsCost) {
+                            userPoints -= offer.pointsCost
+                        }
+                    }
+                )
             }
         }
     }
