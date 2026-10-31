@@ -43,13 +43,13 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.student.wifihelper.ui.theme.ProPurpleContainer
 import com.student.wifihelper.ui.theme.ProPurpleOnContainer
 import com.student.wifihelper.ui.theme.ProPurplePrimary
-import com.student.wifihelper.ui.theme.StatusGreen
 import kotlinx.coroutines.delay
 
 data class TowerPipe(
@@ -69,18 +69,19 @@ fun FlappyDuckGame(
 
     var duckY by remember { mutableFloatStateOf(500f) }
     var velocity by remember { mutableFloatStateOf(0f) }
-    val gravity = 0.8f
+    val gravity = 0.85f
     val jumpPower = -14f
 
     val pipes = remember { mutableStateListOf<TowerPipe>() }
+    var cloudOffsetX by remember { mutableFloatStateOf(0f) }
 
-    // Game loop
+    // Game Loop
     LaunchedEffect(isGameOver) {
         var frame = 0
         while (!isGameOver) {
             frame++
+            cloudOffsetX = (cloudOffsetX - 2f) % 800f
 
-            // Apply gravity
             velocity += gravity
             duckY += velocity
 
@@ -91,19 +92,18 @@ fun FlappyDuckGame(
             }
 
             // Spawn pipes
-            if (frame % 70 == 0) {
+            if (frame % 65 == 0) {
                 val gapY = kotlin.random.Random.nextInt(200, 600).toFloat()
                 pipes.add(TowerPipe(x = 800f, topGapY = gapY))
             }
 
             // Move pipes & collision check
-            val duckRadius = 24f
             val duckX = 200f
 
             val iterator = pipes.iterator()
             while (iterator.hasNext()) {
                 val pipe = iterator.next()
-                pipe.x -= 8f
+                pipe.x -= 8.5f
 
                 // Score check
                 if (!pipe.passed && pipe.x < duckX) {
@@ -111,7 +111,7 @@ fun FlappyDuckGame(
                     score++
                 }
 
-                // Collision with pipes
+                // Collision check
                 if (pipe.x in (duckX - 40f)..(duckX + 40f)) {
                     if (duckY < pipe.topGapY || duckY > (pipe.topGapY + pipe.gapHeight)) {
                         isGameOver = true
@@ -138,7 +138,7 @@ fun FlappyDuckGame(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            // Header Bar
+            // Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -170,7 +170,7 @@ fun FlappyDuckGame(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Score Dashboard Bar
+            // Dashboard
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -198,7 +198,7 @@ fun FlappyDuckGame(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Flappy Game Canvas
+            // Canvas
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -208,7 +208,11 @@ fun FlappyDuckGame(
                     }
             ) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
-                    // Draw Pipes (Antenna Towers)
+                    // Parallax Moving Cloud
+                    val cX = (400f + cloudOffsetX + 800f) % 800f
+                    drawCircle(color = Color.White.copy(alpha = 0.15f), radius = 60f, center = Offset(cX, 120f))
+
+                    // Draw Antenna Pipes
                     pipes.forEach { pipe ->
                         // Top Pipe
                         drawRoundRect(
@@ -226,30 +230,32 @@ fun FlappyDuckGame(
                         )
                     }
 
-                    // Draw Flappy Duck
+                    // Draw Flappy Duck with Tilt Angle
                     if (!isGameOver) {
-                        drawCircle(
-                            color = Color(0xFFFFD54F), // Yellow Duck
-                            radius = 24f,
-                            center = Offset(200f, duckY)
-                        )
-                        drawCircle(
-                            color = Color.Black,
-                            radius = 4f,
-                            center = Offset(210f, duckY - 6f)
-                        )
-                        drawCircle(
-                            color = Color(0xFFFF9800), // Beak
-                            radius = 8f,
-                            center = Offset(222f, duckY + 2f)
-                        )
+                        val duckAngle = (velocity * 3f).coerceIn(-30f, 45f)
+                        rotate(degrees = duckAngle, pivot = Offset(200f, duckY)) {
+                            drawCircle(
+                                color = Color(0xFFFFD54F), // Yellow Body
+                                radius = 24f,
+                                center = Offset(200f, duckY)
+                            )
+                            drawCircle(
+                                color = Color.Black, // Eye
+                                radius = 4f,
+                                center = Offset(210f, duckY - 6f)
+                            )
+                            drawCircle(
+                                color = Color(0xFFFF9800), // Beak
+                                radius = 8f,
+                                center = Offset(222f, duckY + 2f)
+                            )
+                        }
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Game Over / Tap Prompt
             if (isGameOver) {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
@@ -290,7 +296,7 @@ fun FlappyDuckGame(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Box(
-                        modifier = Modifier.padding(16.dp),
+                        modifier = Modifier.padding(14.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(

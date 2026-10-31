@@ -1,10 +1,5 @@
 package com.student.wifihelper.ui.games
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -48,7 +43,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -57,10 +51,17 @@ import com.student.wifihelper.ui.theme.ProPurpleOnContainer
 import com.student.wifihelper.ui.theme.ProPurplePrimary
 import com.student.wifihelper.ui.theme.StatusGreen
 import kotlinx.coroutines.delay
-import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
+
+data class SparkParticle(
+    var x: Float,
+    var y: Float,
+    var vx: Float,
+    var vy: Float,
+    var alpha: Float = 1.0f
+)
 
 @Composable
 fun RouterThrowGame(
@@ -68,46 +69,63 @@ fun RouterThrowGame(
     onClose: () -> Unit
 ) {
     var score by remember { mutableIntStateOf(0) }
+    var level by remember { mutableIntStateOf(1) }
     var knivesRemaining by remember { mutableIntStateOf(7) }
     var isGameOver by remember { mutableStateOf(false) }
     var isWin by remember { mutableStateOf(false) }
 
     val stuckAngles = remember { mutableStateListOf<Float>() }
+    val particles = remember { mutableStateListOf<SparkParticle>() }
+
     var flyingKnifeProgress by remember { mutableFloatStateOf(0f) }
     var isKnifeFlying by remember { mutableStateOf(false) }
 
     var wheelAngle by remember { mutableFloatStateOf(0f) }
-    var wheelSpeed by remember { mutableFloatStateOf(2f) }
+    var wheelSpeed by remember { mutableFloatStateOf(2.5f) }
 
-    // Rotate wheel continuously
-    LaunchedEffect(isGameOver) {
+    // Smooth Wheel Rotation Loop
+    LaunchedEffect(isGameOver, level) {
+        var stepCount = 0
         while (!isGameOver) {
-            wheelAngle = (wheelAngle + wheelSpeed) % 360f
-            // Periodically reverse wheel direction for skill variation
-            if (kotlin.random.Random.nextInt(100) < 3) {
-                wheelSpeed = -wheelSpeed
+            stepCount++
+            // Sine-wave speed fluctuation for smooth difficulty
+            val speedFactor = 1.0f + 0.3f * sin(stepCount * 0.05f).toFloat()
+            wheelAngle = (wheelAngle + wheelSpeed * speedFactor) % 360f
+
+            if (stepCount % 120 == 0 && level >= 2) {
+                wheelSpeed = -wheelSpeed // Smooth direction reversal
             }
+
+            // Update particle effects
+            val iter = particles.iterator()
+            while (iter.hasNext()) {
+                val p = iter.next()
+                p.x += p.vx
+                p.y += p.vy
+                p.alpha -= 0.05f
+                if (p.alpha <= 0f) iter.remove()
+            }
+
             delay(16)
         }
     }
 
-    // Flying knife animation
+    // Flying Knife Animation
     LaunchedEffect(isKnifeFlying) {
         if (isKnifeFlying) {
             var progress = 0f
             while (progress < 1.0f) {
-                progress += 0.15f
+                progress += 0.2f
                 flyingKnifeProgress = progress
                 delay(16)
             }
-            // Knife hit target
+
             isKnifeFlying = false
             flyingKnifeProgress = 0f
 
-            // Calculate hit angle relative to wheel's current rotation
             val hitAngleOnWheel = (270f - wheelAngle + 360f) % 360f
 
-            // Check collision with existing stuck knives (within 18 degrees)
+            // Collision Check (within 18 degrees)
             val isCollision = stuckAngles.any { angle ->
                 val diff = abs(angle - hitAngleOnWheel)
                 diff < 18f || (360f - diff) < 18f
@@ -121,10 +139,31 @@ fun RouterThrowGame(
                 score += 10
                 knivesRemaining--
 
+                // Spawn Spark Particles
+                for (i in 0..12) {
+                    val angleRad = kotlin.random.Random.nextDouble(0.0, 2 * Math.PI)
+                    val speed = kotlin.random.Random.nextFloat() * 8f + 2f
+                    particles.add(
+                        SparkParticle(
+                            x = 0f, // Center relative
+                            y = 0f,
+                            vx = (cos(angleRad) * speed).toFloat(),
+                            vy = (sin(angleRad) * speed).toFloat()
+                        )
+                    )
+                }
+
                 if (knivesRemaining <= 0) {
-                    isGameOver = true
-                    isWin = true
-                    onGameEnd(score + 50) // Bonus for clearing level
+                    if (level < 3) {
+                        level++
+                        knivesRemaining = 7 + level
+                        stuckAngles.clear()
+                        wheelSpeed = if (level % 2 == 0) -3.5f else 3.5f
+                    } else {
+                        isGameOver = true
+                        isWin = true
+                        onGameEnd(score + 100)
+                    }
                 }
             }
         }
@@ -142,7 +181,7 @@ fun RouterThrowGame(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Header Bar
+            // Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -150,7 +189,7 @@ fun RouterThrowGame(
             ) {
                 Column {
                     Text(
-                        text = "🎯 Router Throw",
+                        text = "🎯 Router Throw (Level $level)",
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
                         color = Color.White
@@ -172,7 +211,7 @@ fun RouterThrowGame(
                 }
             }
 
-            // Score & Knives Indicator
+            // Dashboard Info Bar
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
@@ -182,19 +221,19 @@ fun RouterThrowGame(
                     Text(
                         text = "⭐ Points: $score",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
+                        fontSize = 15.sp,
                         color = ProPurpleOnContainer,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
                     )
                 }
 
                 Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF2B2930))) {
                     Text(
-                        text = "📡 Antennas Left: $knivesRemaining",
+                        text = "📡 Antennas: $knivesRemaining",
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp,
                         color = Color.White,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
                     )
                 }
             }
@@ -214,7 +253,7 @@ fun RouterThrowGame(
                     val centerY = size.height * 0.35f
                     val wheelRadius = 80.dp.toPx()
 
-                    // Draw Spinning Wi-Fi Target Wheel
+                    // Draw Spinning Target Wheel
                     rotate(degrees = wheelAngle, pivot = Offset(centerX, centerY)) {
                         drawCircle(
                             color = ProPurplePrimary,
@@ -233,7 +272,7 @@ fun RouterThrowGame(
                             center = Offset(centerX, centerY)
                         )
 
-                        // Draw stuck antennas
+                        // Draw Stuck Antennas
                         stuckAngles.forEach { angle ->
                             val rad = Math.toRadians(angle.toDouble())
                             val startX = centerX + (wheelRadius * cos(rad)).toFloat()
@@ -253,6 +292,15 @@ fun RouterThrowGame(
                                 center = Offset(endX, endY)
                             )
                         }
+                    }
+
+                    // Draw Sparks Particle Effect
+                    particles.forEach { p ->
+                        drawCircle(
+                            color = Color.Yellow.copy(alpha = p.alpha.coerceIn(0f, 1f)),
+                            radius = 4.dp.toPx(),
+                            center = Offset(centerX + p.x, centerY + wheelRadius + p.y)
+                        )
                     }
 
                     // Draw Flying Antenna
@@ -288,30 +336,29 @@ fun RouterThrowGame(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
-                        modifier = Modifier.padding(20.dp),
+                        modifier = Modifier.padding(18.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = if (isWin) "🎉 Level Cleared! +$score Pts" else "💥 Antenna Collision!",
+                            text = if (isWin) "🎉 Level Cleared! +$score Pts" else "💥 Collision! +$score Pts",
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp,
                             color = if (isWin) ProPurpleOnContainer else MaterialTheme.colorScheme.onErrorContainer
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Button(
-                                onClick = {
-                                    score = 0
-                                    knivesRemaining = 7
-                                    stuckAngles.clear()
-                                    isGameOver = false
-                                },
-                                colors = ButtonDefaults.buttonColors(containerColor = ProPurplePrimary)
-                            ) {
-                                Icon(imageVector = Icons.Default.Refresh, contentDescription = "Retry")
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text("Play Again")
-                            }
+                        Button(
+                            onClick = {
+                                score = 0
+                                level = 1
+                                knivesRemaining = 7
+                                stuckAngles.clear()
+                                isGameOver = false
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = ProPurplePrimary)
+                        ) {
+                            Icon(imageVector = Icons.Default.Refresh, contentDescription = "Retry")
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Play Again")
                         }
                     }
                 }
@@ -322,7 +369,7 @@ fun RouterThrowGame(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Box(
-                        modifier = Modifier.padding(16.dp),
+                        modifier = Modifier.padding(14.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(

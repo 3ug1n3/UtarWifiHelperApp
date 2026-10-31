@@ -81,8 +81,10 @@ enum class AppTab(val title: String, val icon: ImageVector) {
 fun UtarApp(
     viewModel: UtarViewModel = viewModel()
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val pointsRepo = remember { com.student.wifihelper.ui.games.UserPointsRepository(context) }
     var selectedTab by remember { mutableStateOf(AppTab.DASHBOARD) }
-    var userPoints by remember { mutableIntStateOf(150) }
+    var userPoints by remember { mutableIntStateOf(pointsRepo.getPoints()) }
 
     val config by viewModel.configState.collectAsState()
     val logs by viewModel.logsState.collectAsState()
@@ -95,8 +97,6 @@ fun UtarApp(
     val wifiUsageGb by viewModel.wifiUsageGb.collectAsState()
     val shouldAnimateSave by viewModel.shouldAnimateSave.collectAsState()
     val toastMessage by viewModel.toastMessage.collectAsState()
-
-    val context = androidx.compose.ui.platform.LocalContext.current
 
     // Real-time Wi-Fi state listener to instantly update status when Wi-Fi is toggled ON/OFF
     androidx.compose.runtime.DisposableEffect(context) {
@@ -303,10 +303,12 @@ fun UtarApp(
                 AppTab.CONFESSIONS -> ConfessionScreen()
                 AppTab.GAMES -> GameCenterScreen(
                     userPoints = userPoints,
-                    onAddPoints = { userPoints += it },
+                    onAddPoints = { amount ->
+                        userPoints = pointsRepo.addPoints(amount)
+                    },
                     onRedeemOffer = { offer ->
-                        if (userPoints >= offer.pointsCost) {
-                            userPoints -= offer.pointsCost
+                        if (pointsRepo.deductPoints(offer.pointsCost)) {
+                            userPoints = pointsRepo.getPoints()
                         }
                     }
                 )

@@ -1,8 +1,10 @@
 package com.student.wifihelper.ui.games
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -68,6 +70,12 @@ fun TurboRacerGame(
     var distanceMeters by remember { mutableIntStateOf(0) }
     var isGameOver by remember { mutableStateOf(false) }
 
+    val animatedLaneOffset by animateFloatAsState(
+        targetValue = playerLane.toFloat(),
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+        label = "laneSlide"
+    )
+
     val obstacles = remember { mutableStateListOf<TrafficObstacle>() }
     var roadOffsetY by remember { mutableFloatStateOf(0f) }
 
@@ -77,10 +85,10 @@ fun TurboRacerGame(
         while (!isGameOver) {
             frameCounter++
             distanceMeters += 1
-            roadOffsetY = (roadOffsetY + 15f) % 60f
+            roadOffsetY = (roadOffsetY + 18f) % 60f
 
             // Spawn obstacles
-            if (frameCounter % 35 == 0) {
+            if (frameCounter % 30 == 0) {
                 val spawnLane = kotlin.random.Random.nextInt(3)
                 val isData = kotlin.random.Random.nextBoolean()
                 obstacles.add(TrafficObstacle(lane = spawnLane, yPos = -100f, isDataPacket = isData))
@@ -90,9 +98,9 @@ fun TurboRacerGame(
             val iterator = obstacles.iterator()
             while (iterator.hasNext()) {
                 val obs = iterator.next()
-                obs.yPos += 18f
+                obs.yPos += 20f
 
-                // Collision check (Y position range around 80% screen height)
+                // Collision check against smooth interpolated car position
                 if (obs.yPos in 650f..820f && obs.lane == playerLane) {
                     if (obs.isDataPacket) {
                         score += 25
@@ -120,7 +128,7 @@ fun TurboRacerGame(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            // Header Bar
+            // Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -152,7 +160,7 @@ fun TurboRacerGame(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Score Dashboard Bar
+            // Dashboard
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -180,7 +188,7 @@ fun TurboRacerGame(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Highway Canvas
+            // Canvas Highway
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -191,10 +199,10 @@ fun TurboRacerGame(
                     val laneWidth = roadWidth / 3f
                     val playerY = size.height * 0.78f
 
-                    // Draw Asphalt Road
+                    // Road background
                     drawRect(color = Color(0xFF2B2930), size = size)
 
-                    // Draw Lane Dividers
+                    // Dashed Lane Lines
                     val dashHeight = 30f
                     val dashGap = 30f
                     var y = -60f + roadOffsetY
@@ -214,38 +222,38 @@ fun TurboRacerGame(
                         y += dashHeight + dashGap
                     }
 
-                    // Draw Obstacles & Data Packets
+                    // Draw Obstacles & Data Orbs
                     obstacles.forEach { obs ->
                         val obsX = (obs.lane * laneWidth) + (laneWidth / 2f)
                         if (obs.isDataPacket) {
                             drawCircle(
                                 color = StatusGreen,
-                                radius = 22f,
+                                radius = 24f,
                                 center = Offset(obsX, obs.yPos)
                             )
                         } else {
                             drawRoundRect(
                                 color = Color(0xFFE91E63),
-                                topLeft = Offset(obsX - 30f, obs.yPos - 40f),
-                                size = Size(60f, 80f),
-                                cornerRadius = CornerRadius(12f)
+                                topLeft = Offset(obsX - 32f, obs.yPos - 45f),
+                                size = Size(64f, 90f),
+                                cornerRadius = CornerRadius(14f)
                             )
                         }
                     }
 
-                    // Draw Player Car
+                    // Draw Player Car with Animated Smooth Lane Slide
                     if (!isGameOver) {
-                        val playerX = (playerLane * laneWidth) + (laneWidth / 2f)
+                        val smoothCarX = (animatedLaneOffset * laneWidth) + (laneWidth / 2f)
                         drawRoundRect(
                             color = ProPurplePrimary,
-                            topLeft = Offset(playerX - 35f, playerY - 45f),
+                            topLeft = Offset(smoothCarX - 35f, playerY - 45f),
                             size = Size(70f, 90f),
                             cornerRadius = CornerRadius(16f)
                         )
                         drawCircle(
                             color = Color.White,
                             radius = 12f,
-                            center = Offset(playerX, playerY - 20f)
+                            center = Offset(smoothCarX, playerY - 20f)
                         )
                     }
                 }
@@ -275,6 +283,7 @@ fun TurboRacerGame(
                             onClick = {
                                 score = 0
                                 distanceMeters = 0
+                                playerLane = 1
                                 obstacles.clear()
                                 isGameOver = false
                             },

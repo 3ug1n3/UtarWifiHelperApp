@@ -1,5 +1,8 @@
 package com.student.wifihelper.ui.games
 
+import android.content.Context
+import android.content.SharedPreferences
+
 enum class MiniGameType(
     val title: String,
     val description: String,
@@ -44,3 +47,27 @@ val REDEMPTION_OFFERS = listOf(
     AutoConnectRedemptionOffer(300, 6, "6 Hours Auto-Connect", "🔥"),
     AutoConnectRedemptionOffer(500, 24, "24 Hours Unlimited Auto-Connect", "🚀")
 )
+
+class UserPointsRepository(context: Context) {
+    private val prefs: SharedPreferences = context.getSharedPreferences("utar_game_points_prefs", Context.MODE_PRIVATE)
+
+    fun getPoints(): Int {
+        return prefs.getInt("key_user_points", 150)
+    }
+
+    fun addPoints(amount: Int): Int {
+        val newPoints = (getPoints() + amount).coerceAtLeast(0)
+        prefs.edit().putInt("key_user_points", newPoints).apply()
+        return newPoints
+    }
+
+    fun deductPoints(amount: Int): Boolean {
+        val current = getPoints()
+        return if (current >= amount) {
+            prefs.edit().putInt("key_user_points", current - amount).apply()
+            true
+        } else {
+            false
+        }
+    }
+}

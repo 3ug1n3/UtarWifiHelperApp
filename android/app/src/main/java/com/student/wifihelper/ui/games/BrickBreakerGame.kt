@@ -62,6 +62,8 @@ data class GameBrick(
     var isDestroyed: Boolean = false
 )
 
+data class TrailPos(val x: Float, val y: Float, var alpha: Float = 0.6f)
+
 @Composable
 fun BrickBreakerGame(
     onGameEnd: (score: Int) -> Unit,
@@ -79,6 +81,7 @@ fun BrickBreakerGame(
     var ballVx by remember { mutableFloatStateOf(10f) }
     var ballVy by remember { mutableFloatStateOf(-12f) }
 
+    val ballTrail = remember { mutableStateListOf<TrailPos>() }
     val bricks = remember { mutableStateListOf<GameBrick>() }
 
     // Init Bricks
@@ -99,11 +102,15 @@ fun BrickBreakerGame(
         }
     }
 
-    // Physics Engine
+    // Physics Engine Loop
     LaunchedEffect(isGameOver) {
         while (!isGameOver && lives > 0) {
             ballX += ballVx
             ballY += ballVy
+
+            // Add trail particle
+            ballTrail.add(0, TrailPos(ballX, ballY))
+            if (ballTrail.size > 6) ballTrail.removeAt(ballTrail.size - 1)
 
             // Wall bounce
             if (ballX <= 30f || ballX >= 750f) ballVx = -ballVx
@@ -123,9 +130,9 @@ fun BrickBreakerGame(
             }
 
             // Paddle bounce
-            if (ballY >= 950f && ballY <= 970f && ballX in (paddleX - 80f)..(paddleX + 80f)) {
+            if (ballY >= 950f && ballY <= 970f && ballX in (paddleX - 90f)..(paddleX + 90f)) {
                 ballVy = -abs(ballVy)
-                ballVx = (ballX - paddleX) * 0.2f
+                ballVx = (ballX - paddleX) * 0.22f
             }
 
             // Brick collisions
@@ -233,6 +240,16 @@ fun BrickBreakerGame(
                             topLeft = Offset(brick.x, brick.y),
                             size = Size(brick.width, brick.height),
                             cornerRadius = CornerRadius(8f)
+                        )
+                    }
+
+                    // Draw Ball Trail
+                    ballTrail.forEachIndexed { index, pos ->
+                        val alpha = (1.0f - (index * 0.15f)).coerceIn(0.1f, 0.8f)
+                        drawCircle(
+                            color = StatusGreen.copy(alpha = alpha),
+                            radius = (16 - index * 2).toFloat().coerceAtLeast(4f),
+                            center = Offset(pos.x, pos.y)
                         )
                     }
 
