@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,12 +13,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stars
 import androidx.compose.material.icons.outlined.Videocam
@@ -27,17 +25,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -99,36 +92,10 @@ fun GameCenterScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 20.dp, vertical = 12.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
             ) {
-                // Header Bar
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = "🎮", fontSize = 24.sp)
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Column {
-                            Text(
-                                text = "UTAR Mini-Game Center",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text = "Play mini-games to earn points for Auto-Connect!",
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Points Balance & AdMob Reward Card
+                // Header & Points Summary Card
                 Card(
                     colors = CardDefaults.cardColors(containerColor = ProPurpleContainer),
                     shape = RoundedCornerShape(20.dp),
@@ -155,7 +122,7 @@ fun GameCenterScreen(
                                     color = ProPurpleOnContainer
                                 )
                                 Text(
-                                    text = "Your Points Balance",
+                                    text = "Your Auto-Connect Balance",
                                     fontSize = 11.sp,
                                     color = ProPurpleOnContainer.copy(alpha = 0.8f)
                                 )
@@ -177,100 +144,171 @@ fun GameCenterScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
                 Text(
-                    text = "Select Mini-Game to Play",
+                    text = "🎮 Select Mini-Game",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
+                    fontSize = 16.sp,
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-                // Mini-Games List
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                ) {
-                    items(MiniGameType.entries) { game ->
-                        Card(
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                            shape = RoundedCornerShape(16.dp),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { activeGame = game }
+                // Clean 2x2 Grid of Mini-Game Cards
+                val games = MiniGameType.entries
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    for (i in games.indices step 2) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Row(
-                                modifier = Modifier.padding(14.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                            // Left Game Card
+                            val game1 = games[i]
+                            Card(
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                                shape = RoundedCornerShape(18.dp),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clickable { activeGame = game1 }
                             ) {
-                                Surface(
-                                    shape = CircleShape,
-                                    color = ProPurpleContainer,
-                                    modifier = Modifier.size(44.dp)
+                                Column(
+                                    modifier = Modifier.padding(14.dp)
                                 ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Text(text = game.iconEmoji, fontSize = 22.sp)
-                                    }
-                                }
-
-                                Spacer(modifier = Modifier.width(12.dp))
-
-                                Column(modifier = Modifier.weight(1f)) {
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
+                                        Surface(
+                                            shape = CircleShape,
+                                            color = ProPurpleContainer,
+                                            modifier = Modifier.size(40.dp)
+                                        ) {
+                                            Box(contentAlignment = Alignment.Center) {
+                                                Text(text = game1.iconEmoji, fontSize = 20.sp)
+                                            }
+                                        }
+
+                                        Surface(
+                                            shape = CircleShape,
+                                            color = ProPurplePrimary.copy(alpha = 0.15f)
+                                        ) {
+                                            Text(
+                                                text = game1.rewardMultiplier,
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = StatusGreen,
+                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                            )
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.height(12.dp))
+
+                                    Text(
+                                        text = game1.title,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+
+                                    Spacer(modifier = Modifier.height(10.dp))
+
+                                    Button(
+                                        onClick = { activeGame = game1 },
+                                        colors = ButtonDefaults.buttonColors(containerColor = ProPurplePrimary),
+                                        shape = RoundedCornerShape(10.dp),
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Icon(imageVector = Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(16.dp))
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text("Play", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            }
+
+                            // Right Game Card (if exists)
+                            if (i + 1 < games.size) {
+                                val game2 = games[i + 1]
+                                Card(
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                                    shape = RoundedCornerShape(18.dp),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clickable { activeGame = game2 }
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(14.dp)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Surface(
+                                                shape = CircleShape,
+                                                color = ProPurpleContainer,
+                                                modifier = Modifier.size(40.dp)
+                                            ) {
+                                                Box(contentAlignment = Alignment.Center) {
+                                                    Text(text = game2.iconEmoji, fontSize = 20.sp)
+                                                }
+                                            }
+
+                                            Surface(
+                                                shape = CircleShape,
+                                                color = ProPurplePrimary.copy(alpha = 0.15f)
+                                            ) {
+                                                Text(
+                                                    text = game2.rewardMultiplier,
+                                                    fontSize = 10.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = StatusGreen,
+                                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                                )
+                                            }
+                                        }
+
+                                        Spacer(modifier = Modifier.height(12.dp))
+
                                         Text(
-                                            text = game.title,
+                                            text = game2.title,
                                             fontWeight = FontWeight.Bold,
-                                            fontSize = 15.sp,
+                                            fontSize = 14.sp,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
-                                        Text(
-                                            text = game.rewardMultiplier,
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = StatusGreen
-                                        )
+
+                                        Spacer(modifier = Modifier.height(10.dp))
+
+                                        Button(
+                                            onClick = { activeGame = game2 },
+                                            colors = ButtonDefaults.buttonColors(containerColor = ProPurplePrimary),
+                                            shape = RoundedCornerShape(10.dp),
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Icon(imageVector = Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(16.dp))
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text("Play", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                        }
                                     }
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = game.description,
-                                        fontSize = 12.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        lineHeight = 16.sp
-                                    )
                                 }
-
-                                Spacer(modifier = Modifier.width(8.dp))
-
-                                Icon(
-                                    imageVector = Icons.Default.PlayArrow,
-                                    contentDescription = "Play",
-                                    tint = ProPurplePrimary,
-                                    modifier = Modifier.size(24.dp)
-                                )
                             }
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
-                // Redemption Store Section
+                // Points Redemption Store Section
                 Text(
                     text = "🎁 Auto-Connect Points Store",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
+                    fontSize = 16.sp,
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -294,7 +332,7 @@ fun GameCenterScreen(
                                 modifier = Modifier.padding(10.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Text(text = offer.badgeEmoji, fontSize = 20.sp)
+                                Text(text = offer.badgeEmoji, fontSize = 22.sp)
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = "${offer.durationHours} Hours",
@@ -314,7 +352,7 @@ fun GameCenterScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }
