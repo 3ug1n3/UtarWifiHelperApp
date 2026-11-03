@@ -32,6 +32,14 @@ class FirebaseConfessionRepository : ConfessionRepository {
         prefs.edit().putStringSet("key_bookmarks", set).apply()
     }
 
+    private fun getLikedIds(): MutableSet<String> {
+        return prefs.getStringSet("key_liked_posts", emptySet())?.toMutableSet() ?: mutableSetOf()
+    }
+
+    private fun saveLikedIds(set: Set<String>) {
+        prefs.edit().putStringSet("key_liked_posts", set).apply()
+    }
+
     override fun getConfessionsFlow(): Flow<List<Confession>> = callbackFlow {
         val listener = try {
             firestore.collection("confessions")
@@ -44,6 +52,7 @@ class FirebaseConfessionRepository : ConfessionRepository {
 
                     if (snapshot != null) {
                         val bookmarks = getBookmarkedIds()
+                        val likedIds = getLikedIds()
                         val list = snapshot.documents.mapNotNull { doc ->
                             try {
                                 val id = doc.getString("id") ?: doc.id
@@ -77,7 +86,7 @@ class FirebaseConfessionRepository : ConfessionRepository {
                                     category = category,
                                     timestamp = timestamp,
                                     likesCount = likesCount,
-                                    isLikedByMe = false,
+                                    isLikedByMe = likedIds.contains(id),
                                     reportCount = reportCount,
                                     commentsCount = commentsCount,
                                     imageUrl = imageUrl,
@@ -166,9 +175,22 @@ class FirebaseConfessionRepository : ConfessionRepository {
 
     override suspend fun toggleLike(confessionId: String): Result<Unit> {
         return try {
-            firestore.collection("confessions").document(confessionId)
-                .update("likesCount", FieldValue.increment(1))
-                .await()
+            val likedSet = getLikedIds()
+            val isAlreadyLiked = likedSet.contains(confessionId)
+
+            if (isAlreadyLiked) {
+                likedSet.remove(confessionId)
+                saveLikedIds(likedSet)
+                firestore.collection("confessions").document(confessionId)
+                    .update("likesCount", FieldValue.increment(-1))
+                    .await()
+            } else {
+                likedSet.add(confessionId)
+                saveLikedIds(likedSet)
+                firestore.collection("confessions").document(confessionId)
+                    .update("likesCount", FieldValue.increment(1))
+                    .await()
+            }
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
