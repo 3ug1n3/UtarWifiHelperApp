@@ -132,32 +132,38 @@ fun DashboardScreen(
                 border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.3f)),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier.padding(14.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.WifiOff,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(28.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column(modifier = Modifier.weight(1f)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.WifiOff,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
                         Text(
                             text = androidx.compose.ui.res.stringResource(com.student.wifihelper.R.string.wifi_off_title),
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp,
                             color = MaterialTheme.colorScheme.onErrorContainer
                         )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = androidx.compose.ui.res.stringResource(com.student.wifihelper.R.string.wifi_off_desc),
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f)
-                        )
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Text(
+                        text = androidx.compose.ui.res.stringResource(com.student.wifihelper.R.string.wifi_off_desc),
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.85f),
+                        lineHeight = 16.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
                     Button(
                         onClick = {
                             try {
@@ -168,11 +174,12 @@ fun DashboardScreen(
                             } catch (e: Exception) {}
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-                        shape = RoundedCornerShape(10.dp)
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
                             text = androidx.compose.ui.res.stringResource(com.student.wifihelper.R.string.open_wifi_settings),
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onError
                         )

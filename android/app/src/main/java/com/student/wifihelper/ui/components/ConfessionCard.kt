@@ -94,28 +94,31 @@ fun ConfessionCard(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            // Header Row: Confession ID & Category Chip
+            // Header: Confession ID, Timestamp & Category Badge
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(modifier = Modifier.weight(1f, fill = false)) {
                     Text(
                         text = "#UTARConfession #${confession.confessionNumber}",
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp,
-                        color = ProPurplePrimary
+                        color = ProPurplePrimary,
+                        maxLines = 1
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "•  ${formatRelativeTime(confession.timestamp)}",
+                        text = formatRelativeTime(confession.timestamp),
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
-                // Category Badge
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // Category Badge (Guaranteed single line on all screen sizes)
                 Surface(
                     shape = CircleShape,
                     color = ProPurpleContainer,
@@ -124,8 +127,10 @@ fun ConfessionCard(
                     Text(
                         text = "${confession.category.iconEmoji} ${confession.category.displayName}",
                         fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        softWrap = false,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
                     )
                 }
             }
