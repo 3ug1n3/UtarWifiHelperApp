@@ -21,13 +21,17 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.ViewStream
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -43,6 +47,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -170,62 +177,114 @@ fun ConfessionScreen(
                 }
             }
 
-            // Category & Sort Order Filter Row
+            // Compact Dropdown Filter Row
+            var isCategoryMenuExpanded by remember { mutableStateOf(false) }
+            var isSortMenuExpanded by remember { mutableStateOf(false) }
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 2.dp),
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Category Chips (including #Saved 🔖)
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    items(ConfessionCategory.entries.toTypedArray()) { category ->
-                        val isSelected = selectedCategory == category
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = { viewModel.selectCategory(category) },
-                            label = {
-                                Text(
-                                    text = "${category.iconEmoji} ${category.displayName}",
-                                    fontSize = 11.sp,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                                )
-                            },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = ProPurpleContainer,
-                                selectedLabelColor = ProPurpleOnContainer
-                            ),
-                            shape = CircleShape
-                        )
+                // Category Dropdown Badge
+                Box {
+                    Surface(
+                        shape = CircleShape,
+                        color = ProPurpleContainer,
+                        modifier = Modifier.clickable { isCategoryMenuExpanded = true }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "${selectedCategory.iconEmoji} ${selectedCategory.displayName}",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = ProPurpleOnContainer
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = "Category Dropdown",
+                                tint = ProPurpleOnContainer,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+
+                    DropdownMenu(
+                        expanded = isCategoryMenuExpanded,
+                        onDismissRequest = { isCategoryMenuExpanded = false }
+                    ) {
+                        ConfessionCategory.entries.forEach { category ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = "${category.iconEmoji} ${category.displayName}",
+                                        fontSize = 13.sp,
+                                        fontWeight = if (selectedCategory == category) FontWeight.Bold else FontWeight.Normal,
+                                        color = if (selectedCategory == category) ProPurplePrimary else MaterialTheme.colorScheme.onSurface
+                                    )
+                                },
+                                onClick = {
+                                    viewModel.selectCategory(category)
+                                    isCategoryMenuExpanded = false
+                                }
+                            )
+                        }
                     }
                 }
 
-                Spacer(modifier = Modifier.width(8.dp))
+                // Sort Order Dropdown Badge
+                Box {
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        modifier = Modifier.clickable { isSortMenuExpanded = true }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "${sortOrder.iconEmoji} ${sortOrder.displayName}",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = "Sort Dropdown",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
 
-                // Feed Sort Order Chips (Latest vs Top Liked)
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    ConfessionSortOrder.entries.forEach { sort ->
-                        val isSelected = sortOrder == sort
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = { viewModel.setSortOrder(sort) },
-                            label = {
-                                Text(
-                                    text = "${sort.iconEmoji} ${sort.displayName}",
-                                    fontSize = 11.sp,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                                )
-                            },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = ProPurplePrimary,
-                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-                            ),
-                            shape = CircleShape
-                        )
+                    DropdownMenu(
+                        expanded = isSortMenuExpanded,
+                        onDismissRequest = { isSortMenuExpanded = false }
+                    ) {
+                        ConfessionSortOrder.entries.forEach { sort ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = "${sort.iconEmoji} ${sort.displayName}",
+                                        fontSize = 13.sp,
+                                        fontWeight = if (sortOrder == sort) FontWeight.Bold else FontWeight.Normal,
+                                        color = if (sortOrder == sort) ProPurplePrimary else MaterialTheme.colorScheme.onSurface
+                                    )
+                                },
+                                onClick = {
+                                    viewModel.setSortOrder(sort)
+                                    isSortMenuExpanded = false
+                                }
+                            )
+                        }
                     }
                 }
             }
