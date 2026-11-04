@@ -1,6 +1,12 @@
 package com.student.wifihelper.ui.screens
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -178,24 +184,29 @@ fun ConfessionScreen(
                 }
             }
 
-            // Horizontal Expandable Filter Line
+            // Animated Horizontal Filter Row (Sitting right next to each other)
             var isCategoryExpanded by remember { mutableStateOf(false) }
             var isSortExpanded by remember { mutableStateOf(false) }
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .animateContentSize()
                     .padding(horizontal = 16.dp, vertical = 4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Category Section
-                if (!isSortExpanded) {
+                AnimatedVisibility(
+                    visible = !isSortExpanded,
+                    enter = fadeIn() + expandHorizontally(),
+                    exit = fadeOut() + shrinkHorizontally(),
+                    modifier = if (isCategoryExpanded) Modifier.weight(1f) else Modifier
+                ) {
                     if (isCategoryExpanded) {
-                        // Horizontal Scrolling Category Chips across line
                         LazyRow(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             items(ConfessionCategory.entries.toTypedArray()) { category ->
                                 val isSelected = selectedCategory == category
@@ -221,7 +232,6 @@ fun ConfessionScreen(
                             }
                         }
                     } else {
-                        // Compact Category Badge
                         Surface(
                             shape = CircleShape,
                             color = ProPurpleContainer,
@@ -252,17 +262,17 @@ fun ConfessionScreen(
                     }
                 }
 
-                if (!isCategoryExpanded && !isSortExpanded) {
-                    Spacer(modifier = Modifier.width(8.dp))
-                }
-
                 // Sort Section
-                if (!isCategoryExpanded) {
+                AnimatedVisibility(
+                    visible = !isCategoryExpanded,
+                    enter = fadeIn() + expandHorizontally(),
+                    exit = fadeOut() + shrinkHorizontally(),
+                    modifier = if (isSortExpanded) Modifier.weight(1f) else Modifier
+                ) {
                     if (isSortExpanded) {
-                        // Horizontal Sort Options across line
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             ConfessionSortOrder.entries.forEach { sort ->
                                 val isSelected = sortOrder == sort
@@ -288,7 +298,6 @@ fun ConfessionScreen(
                             }
                         }
                     } else {
-                        // Compact Sort Badge
                         Surface(
                             shape = CircleShape,
                             color = MaterialTheme.colorScheme.surfaceVariant,
