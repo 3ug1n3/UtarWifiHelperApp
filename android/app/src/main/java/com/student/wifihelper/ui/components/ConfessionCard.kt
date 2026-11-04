@@ -14,13 +14,16 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import com.student.wifihelper.ui.theme.StatusGreen
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.background
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Favorite
@@ -29,6 +32,8 @@ import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Flag
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -145,32 +150,34 @@ fun ConfessionCard(
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            // Optional Image Attachment Preview
+            // Optional Image Attachment Preview with Border Styling
             if (!confession.imageUrl.isNullOrBlank()) {
                 Spacer(modifier = Modifier.height(10.dp))
-                Surface(
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp)
-                        .clip(RoundedCornerShape(12.dp)),
-                    color = MaterialTheme.colorScheme.surfaceVariant
+                        .height(200.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    border = BorderStroke(1.dp, ProPurplePrimary.copy(alpha = 0.25f)),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     AsyncImage(
                         model = confession.imageUrl,
-                        contentDescription = "Confession Image",
+                        contentDescription = "Confession Attachment",
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
             }
 
-            // Interactive Student Poll Component
+            // Interactive Student Poll Component with Fill Progress Bar
             confession.poll?.let { poll ->
                 Spacer(modifier = Modifier.height(12.dp))
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    color = ProPurpleContainer.copy(alpha = 0.25f)
+                    shape = RoundedCornerShape(14.dp),
+                    color = ProPurpleContainer.copy(alpha = 0.35f),
+                    border = BorderStroke(1.dp, ProPurplePrimary.copy(alpha = 0.3f))
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         Text(
@@ -185,22 +192,21 @@ fun ConfessionCard(
 
                         poll.options.forEachIndexed { index, optionText ->
                             val votes = poll.voteCounts.getOrElse(index) { 0 }
-                            val percentage = (votes * 100) / totalVotes
+                            val percentageFloat = votes.toFloat() / totalVotes.toFloat()
+                            val percentageInt = (percentageFloat * 100).toInt()
                             val isVoted = poll.userVotedOptionIndex == index
 
-                            Surface(
+                            Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(vertical = 4.dp)
                                     .clip(RoundedCornerShape(8.dp))
-                                    .clickable { onVotePoll(index) },
-                                color = if (isVoted) ProPurplePrimary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surface,
-                                border = if (isVoted) BorderStroke(1.dp, ProPurplePrimary) else null
+                                    .clickable { onVotePoll(index) }
                             ) {
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(horizontal = 10.dp, vertical = 8.dp),
+                                        .padding(horizontal = 6.dp, vertical = 4.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
@@ -211,12 +217,21 @@ fun ConfessionCard(
                                         color = if (isVoted) ProPurplePrimary else MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
-                                        text = "$percentage% ($votes)",
+                                        text = "$percentageInt% ($votes)",
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.SemiBold,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
+                                LinearProgressIndicator(
+                                    progress = { percentageFloat },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(6.dp)
+                                        .clip(RoundedCornerShape(3.dp)),
+                                    color = if (isVoted) ProPurplePrimary else StatusGreen,
+                                    trackColor = MaterialTheme.colorScheme.surfaceVariant
+                                )
                             }
                         }
                     }
@@ -282,6 +297,32 @@ fun ConfessionCard(
                             imageVector = if (confession.isBookmarkedByMe) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
                             contentDescription = "Save",
                             tint = if (confession.isBookmarkedByMe) ProPurplePrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+
+                    // Share Confession Button
+                    IconButton(
+                        onClick = {
+                            try {
+                                val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                    type = "text/plain"
+                                    putExtra(
+                                        android.content.Intent.EXTRA_TEXT,
+                                        "💬 #UTARConfession #${confession.confessionNumber}\n\n\"${confession.content}\"\n\n— Shared from U不停歇WIFI助手 App 🎓"
+                                    )
+                                }
+                                context.startActivity(android.content.Intent.createChooser(shareIntent, "Share Confession via"))
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "Unable to open share menu", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Share,
+                            contentDescription = "Share",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(18.dp)
                         )
                     }
