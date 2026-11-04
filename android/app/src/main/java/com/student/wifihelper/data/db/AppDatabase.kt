@@ -8,7 +8,7 @@ import com.student.wifihelper.data.model.LoginLog
 import com.student.wifihelper.data.model.PortalEndpoint
 import com.student.wifihelper.data.model.UserConfig
 
-@Database(entities = [UserConfig::class, LoginLog::class, PortalEndpoint::class], version = 3, exportSchema = false)
+@Database(entities = [UserConfig::class, LoginLog::class, PortalEndpoint::class], version = 4, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun configDao(): ConfigDao
     abstract fun logDao(): LogDao

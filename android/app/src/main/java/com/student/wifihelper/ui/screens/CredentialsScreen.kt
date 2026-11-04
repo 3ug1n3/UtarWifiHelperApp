@@ -35,6 +35,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -231,34 +232,116 @@ fun CredentialsScreen(
             }
         }
 
-        // Auto-Login Behavior Card hidden temporarily for Gamified Points redesign
+        // Auto-Login Behavior & Gamified Time Remaining Card
         Card(
-            colors = CardDefaults.cardColors(containerColor = ProPurpleContainer.copy(alpha = 0.35f)),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(20.dp),
             border = androidx.compose.foundation.BorderStroke(1.dp, ProOutline),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Row(
+            Column(
                 modifier = Modifier.padding(20.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    text = "🎮",
-                    fontSize = 28.sp
+                    text = "Auto-Login Behavior",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.onBackground
                 )
-                Spacer(modifier = Modifier.width(14.dp))
-                Column {
-                    Text(
-                        text = "Gamified Auto-Connect Coming Soon",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
-                        color = ProPurplePrimary
+
+                // Remaining Unlocked Time Status Banner
+                val now = System.currentTimeMillis()
+                val expirationTime = config?.autoConnectExpirationTime ?: 0L
+                val remainingMs = (expirationTime - now).coerceAtLeast(0L)
+                val remainingHours = remainingMs / (1000 * 60 * 60)
+                val remainingMinutes = (remainingMs / (1000 * 60)) % 60
+                val isUnlocked = remainingMs > 0L
+
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = if (isUnlocked) ProPurpleContainer else MaterialTheme.colorScheme.surfaceVariant,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, if (isUnlocked) ProPurplePrimary.copy(alpha = 0.3f) else ProOutline),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = if (isUnlocked) "⚡" else "🔒",
+                            fontSize = 22.sp
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = if (isUnlocked) "Auto-Connect Unlocked" else "Auto-Connect Time Locked",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                                color = if (isUnlocked) ProPurpleOnContainer else MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = if (isUnlocked) "Time remaining: ${remainingHours}h ${remainingMinutes}m" else "Earn points in Games tab to unlock auto-connect hours!",
+                                fontSize = 12.sp,
+                                fontWeight = if (isUnlocked) FontWeight.SemiBold else FontWeight.Normal,
+                                color = if (isUnlocked) ProPurplePrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Enable Auto-Login", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+                        Text(
+                            "Automatically detect captive portal and submit login request.",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = autoLoginEnabled,
+                        onCheckedChange = { autoLoginEnabled = it },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = ProPurplePrimary
+                        )
                     )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = "Earn points by playing mini-games to unlock background auto-connect time!",
-                        fontSize = 12.sp,
-                        color = ProPurpleOnContainer
+                }
+
+                Column {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Default.Timer,
+                                contentDescription = null,
+                                tint = ProPurplePrimary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Background Polling Interval", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                        }
+                        Text("$pollingInterval seconds", fontWeight = FontWeight.Bold, color = ProPurplePrimary)
+                    }
+
+                    Slider(
+                        value = pollingInterval.toFloat(),
+                        onValueChange = { pollingInterval = it.toInt() },
+                        valueRange = 10f..120f,
+                        steps = 10,
+                        colors = SliderDefaults.colors(
+                            thumbColor = ProPurplePrimary,
+                            activeTrackColor = ProPurplePrimary
+                        ),
+                        modifier = Modifier.padding(top = 8.dp)
                     )
                 }
             }

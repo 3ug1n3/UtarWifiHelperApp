@@ -309,6 +309,7 @@ fun UtarApp(
                     onRedeemOffer = { offer ->
                         if (pointsRepo.deductPoints(offer.pointsCost)) {
                             userPoints = pointsRepo.getPoints()
+                            viewModel.redeemAutoConnectHours(offer.durationHours)
                         }
                     }
                 )
