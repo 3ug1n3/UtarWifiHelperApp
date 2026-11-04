@@ -24,6 +24,8 @@ class FirebaseConfessionRepository : ConfessionRepository {
         UtarApplication.instance.getSharedPreferences("bookmarked_confessions_prefs", Context.MODE_PRIVATE)
     }
 
+    private val bookmarkedIdsFlow = kotlinx.coroutines.flow.MutableStateFlow<Set<String>>(getBookmarkedIds())
+
     private fun getBookmarkedIds(): HashSet<String> {
         val set = prefs.getStringSet("key_bookmarks", null)
         return if (set != null) HashSet(set) else HashSet()
@@ -33,6 +35,7 @@ class FirebaseConfessionRepository : ConfessionRepository {
         val newSet = HashSet(set)
         prefs.edit().remove("key_bookmarks").apply()
         prefs.edit().putStringSet("key_bookmarks", newSet).apply()
+        bookmarkedIdsFlow.value = newSet
     }
 
     private fun getLikedIds(): HashSet<String> {
@@ -46,7 +49,7 @@ class FirebaseConfessionRepository : ConfessionRepository {
         prefs.edit().putStringSet("key_liked_posts", newSet).apply()
     }
 
-    override fun getConfessionsFlow(): Flow<List<Confession>> = callbackFlow {
+    private val rawFirestoreFlow: Flow<List<Confession>> = callbackFlow {
         val listener = try {
             firestore.collection("confessions")
                 .orderBy("timestamp", Query.Direction.DESCENDING)
@@ -57,7 +60,6 @@ class FirebaseConfessionRepository : ConfessionRepository {
                     }
 
                     if (snapshot != null) {
-                        val bookmarks = getBookmarkedIds()
                         val likedIds = getLikedIds()
                         val list = snapshot.documents.mapNotNull { doc ->
                             try {
@@ -96,7 +98,7 @@ class FirebaseConfessionRepository : ConfessionRepository {
                                     reportCount = reportCount,
                                     commentsCount = commentsCount,
                                     imageUrl = imageUrl,
-                                    isBookmarkedByMe = bookmarks.contains(id),
+                                    isBookmarkedByMe = false,
                                     poll = poll
                                 )
                             } catch (e: Exception) {
@@ -113,6 +115,14 @@ class FirebaseConfessionRepository : ConfessionRepository {
         }
 
         awaitClose { listener?.remove() }
+    }
+
+    override fun getConfessionsFlow(): Flow<List<Confession>> {
+        return kotlinx.coroutines.flow.combine(rawFirestoreFlow, bookmarkedIdsFlow) { list, bookmarks ->
+            list.map { confession ->
+                confession.copy(isBookmarkedByMe = bookmarks.contains(confession.id))
+            }
+        }
     }
 
     private suspend fun uploadImageToStorage(imageUriString: String): String? {
