@@ -3,9 +3,14 @@ package com.student.wifihelper.ui.screens
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -184,14 +189,14 @@ fun ConfessionScreen(
                 }
             }
 
-            // Animated Horizontal Filter Row (Sitting right next to each other)
+            // Spring Bouncy Animated Horizontal Filter Row
             var isCategoryExpanded by remember { mutableStateOf(false) }
             var isSortExpanded by remember { mutableStateOf(false) }
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .animateContentSize()
+                    .animateContentSize(animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow))
                     .padding(horizontal = 16.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -199,8 +204,14 @@ fun ConfessionScreen(
                 // Category Section
                 AnimatedVisibility(
                     visible = !isSortExpanded,
-                    enter = fadeIn() + expandHorizontally(),
-                    exit = fadeOut() + shrinkHorizontally(),
+                    enter = fadeIn(animationSpec = tween(200)) + expandHorizontally(
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow),
+                        expandFrom = Alignment.Start
+                    ) + scaleIn(initialScale = 0.85f, animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy)),
+                    exit = fadeOut(animationSpec = tween(150)) + shrinkHorizontally(
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium),
+                        shrinkTowards = Alignment.Start
+                    ) + scaleOut(targetScale = 0.85f),
                     modifier = if (isCategoryExpanded) Modifier.weight(1f) else Modifier
                 ) {
                     if (isCategoryExpanded) {
@@ -265,8 +276,14 @@ fun ConfessionScreen(
                 // Sort Section
                 AnimatedVisibility(
                     visible = !isCategoryExpanded,
-                    enter = fadeIn() + expandHorizontally(),
-                    exit = fadeOut() + shrinkHorizontally(),
+                    enter = fadeIn(animationSpec = tween(200)) + expandHorizontally(
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow),
+                        expandFrom = Alignment.End
+                    ) + scaleIn(initialScale = 0.85f, animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy)),
+                    exit = fadeOut(animationSpec = tween(150)) + shrinkHorizontally(
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium),
+                        shrinkTowards = Alignment.End
+                    ) + scaleOut(targetScale = 0.85f),
                     modifier = if (isSortExpanded) Modifier.weight(1f) else Modifier
                 ) {
                     if (isSortExpanded) {
