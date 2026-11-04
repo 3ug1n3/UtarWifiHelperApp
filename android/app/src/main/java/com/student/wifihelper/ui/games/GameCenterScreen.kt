@@ -30,6 +30,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +42,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.rewarded.RewardedAd
+import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import com.student.wifihelper.ui.theme.ProPurpleContainer
 import com.student.wifihelper.ui.theme.ProPurpleOnContainer
 import com.student.wifihelper.ui.theme.ProPurplePrimary
@@ -54,6 +59,28 @@ fun GameCenterScreen(
 ) {
     val context = LocalContext.current
     var activeGame by remember { mutableStateOf<MiniGameType?>(null) }
+
+    val rewardedAdUnitId = "ca-app-pub-9942249708634262/1721313103"
+    var rewardedAd by remember { mutableStateOf<RewardedAd?>(null) }
+
+    LaunchedEffect(Unit) {
+        try {
+            val adRequest = AdRequest.Builder().build()
+            RewardedAd.load(
+                context,
+                rewardedAdUnitId,
+                adRequest,
+                object : RewardedAdLoadCallback() {
+                    override fun onAdLoaded(ad: RewardedAd) {
+                        rewardedAd = ad
+                    }
+                    override fun onAdFailedToLoad(error: LoadAdError) {
+                        rewardedAd = null
+                    }
+                }
+            )
+        } catch (e: Exception) {}
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (activeGame != null) {
@@ -131,8 +158,32 @@ fun GameCenterScreen(
 
                         Button(
                             onClick = {
-                                onAddPoints(50)
-                                Toast.makeText(context, "📺 +50 Bonus Points Added!", Toast.LENGTH_SHORT).show()
+                                val activity = context as? android.app.Activity
+                                if (rewardedAd != null && activity != null) {
+                                    rewardedAd?.show(activity) { _ ->
+                                        onAddPoints(50)
+                                        Toast.makeText(context, "🎉 +50 Bonus Points Added!", Toast.LENGTH_SHORT).show()
+                                    }
+                                    rewardedAd = null
+                                    try {
+                                        RewardedAd.load(
+                                            context,
+                                            rewardedAdUnitId,
+                                            AdRequest.Builder().build(),
+                                            object : RewardedAdLoadCallback() {
+                                                override fun onAdLoaded(ad: RewardedAd) {
+                                                    rewardedAd = ad
+                                                }
+                                                override fun onAdFailedToLoad(error: LoadAdError) {
+                                                    rewardedAd = null
+                                                }
+                                            }
+                                        )
+                                    } catch (e: Exception) {}
+                                } else {
+                                    onAddPoints(50)
+                                    Toast.makeText(context, "📺 +50 Bonus Points Added!", Toast.LENGTH_SHORT).show()
+                                }
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = ProPurplePrimary),
                             shape = RoundedCornerShape(12.dp)
