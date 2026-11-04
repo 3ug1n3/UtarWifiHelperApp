@@ -24,20 +24,26 @@ class FirebaseConfessionRepository : ConfessionRepository {
         UtarApplication.instance.getSharedPreferences("bookmarked_confessions_prefs", Context.MODE_PRIVATE)
     }
 
-    private fun getBookmarkedIds(): MutableSet<String> {
-        return prefs.getStringSet("key_bookmarks", emptySet())?.toMutableSet() ?: mutableSetOf()
+    private fun getBookmarkedIds(): HashSet<String> {
+        val set = prefs.getStringSet("key_bookmarks", null)
+        return if (set != null) HashSet(set) else HashSet()
     }
 
     private fun saveBookmarkedIds(set: Set<String>) {
-        prefs.edit().putStringSet("key_bookmarks", set).apply()
+        val newSet = HashSet(set)
+        prefs.edit().remove("key_bookmarks").apply()
+        prefs.edit().putStringSet("key_bookmarks", newSet).apply()
     }
 
-    private fun getLikedIds(): MutableSet<String> {
-        return prefs.getStringSet("key_liked_posts", emptySet())?.toMutableSet() ?: mutableSetOf()
+    private fun getLikedIds(): HashSet<String> {
+        val set = prefs.getStringSet("key_liked_posts", null)
+        return if (set != null) HashSet(set) else HashSet()
     }
 
     private fun saveLikedIds(set: Set<String>) {
-        prefs.edit().putStringSet("key_liked_posts", set).apply()
+        val newSet = HashSet(set)
+        prefs.edit().remove("key_liked_posts").apply()
+        prefs.edit().putStringSet("key_liked_posts", newSet).apply()
     }
 
     override fun getConfessionsFlow(): Flow<List<Confession>> = callbackFlow {
@@ -250,34 +256,39 @@ class FirebaseConfessionRepository : ConfessionRepository {
     }
 
     override fun getCommentsFlow(confessionId: String): Flow<List<ConfessionComment>> = callbackFlow {
-        val listener = firestore.collection("confessions").document(confessionId)
-            .collection("comments")
-            .orderBy("timestamp", Query.Direction.ASCENDING)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null || snapshot == null) {
-                    trySend(emptyList())
-                    return@addSnapshotListener
-                }
-
-                val list = snapshot.documents.mapNotNull { doc ->
-                    try {
-                        val id = doc.getString("id") ?: doc.id
-                        val content = doc.getString("content") ?: ""
-                        val timestamp = doc.getLong("timestamp") ?: System.currentTimeMillis()
-                        ConfessionComment(
-                            id = id,
-                            confessionId = confessionId,
-                            content = content,
-                            timestamp = timestamp
-                        )
-                    } catch (e: Exception) {
-                        null
+        val listener = try {
+            firestore.collection("confessions").document(confessionId)
+                .collection("comments")
+                .orderBy("timestamp", Query.Direction.ASCENDING)
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null || snapshot == null) {
+                        trySend(emptyList())
+                        return@addSnapshotListener
                     }
-                }
-                trySend(list)
-            }
 
-        awaitClose { listener.remove() }
+                    val list = snapshot.documents.mapNotNull { doc ->
+                        try {
+                            val id = doc.getString("id") ?: doc.id
+                            val content = doc.getString("content") ?: ""
+                            val timestamp = doc.getLong("timestamp") ?: System.currentTimeMillis()
+                            ConfessionComment(
+                                id = id,
+                                confessionId = confessionId,
+                                content = content,
+                                timestamp = timestamp
+                            )
+                        } catch (e: Exception) {
+                            null
+                        }
+                    }
+                    trySend(list)
+                }
+        } catch (e: Exception) {
+            trySend(emptyList())
+            null
+        }
+
+        awaitClose { listener?.remove() }
     }
 
     override suspend fun addComment(confessionId: String, content: String): Result<Unit> {

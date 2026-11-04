@@ -135,6 +135,60 @@ class LocalConfessionRepository(context: Context) : ConfessionRepository {
 
     private val commentsStateFlow = MutableStateFlow<Map<String, List<ConfessionComment>>>(emptyMap())
 
+    init {
+        loadConfessions()
+        loadCommentsFromPrefs()
+    }
+
+    private fun loadCommentsFromPrefs() {
+        val jsonString = prefs.getString("key_comments_json", null)
+        if (!jsonString.isNullOrEmpty()) {
+            try {
+                val jsonObject = JSONObject(jsonString)
+                val map = mutableMapOf<String, List<ConfessionComment>>()
+                val keys = jsonObject.keys()
+                while (keys.hasNext()) {
+                    val key = keys.next()
+                    val array = jsonObject.getJSONArray(key)
+                    val list = mutableListOf<ConfessionComment>()
+                    for (i in 0 until array.length()) {
+                        val obj = array.getJSONObject(i)
+                        list.add(
+                            ConfessionComment(
+                                id = obj.getString("id"),
+                                confessionId = obj.getString("confessionId"),
+                                content = obj.getString("content"),
+                                timestamp = obj.getLong("timestamp")
+                            )
+                        )
+                    }
+                    map[key] = list
+                }
+                commentsStateFlow.value = map
+            } catch (e: Exception) {}
+        }
+    }
+
+    private fun saveCommentsToPrefs(map: Map<String, List<ConfessionComment>>) {
+        try {
+            val jsonObject = JSONObject()
+            for ((key, list) in map) {
+                val array = JSONArray()
+                for (comment in list) {
+                    val obj = JSONObject().apply {
+                        put("id", comment.id)
+                        put("confessionId", comment.confessionId)
+                        put("content", comment.content)
+                        put("timestamp", comment.timestamp)
+                    }
+                    array.put(obj)
+                }
+                jsonObject.put(key, array)
+            }
+            prefs.edit().putString("key_comments_json", jsonObject.toString()).apply()
+        } catch (e: Exception) {}
+    }
+
     override fun getCommentsFlow(confessionId: String): Flow<List<ConfessionComment>> {
         return commentsStateFlow.map { mapData -> mapData[confessionId] ?: emptyList() }
     }
@@ -152,10 +206,11 @@ class LocalConfessionRepository(context: Context) : ConfessionRepository {
         )
         currentMap[confessionId] = commentList
         commentsStateFlow.value = currentMap
+        saveCommentsToPrefs(currentMap)
 
         val updatedConfessions = _confessionsFlow.value.map { item ->
             if (item.id == confessionId) {
-                item.copy(commentsCount = item.commentsCount + 1)
+                item.copy(commentsCount = commentList.size)
             } else {
                 item
             }

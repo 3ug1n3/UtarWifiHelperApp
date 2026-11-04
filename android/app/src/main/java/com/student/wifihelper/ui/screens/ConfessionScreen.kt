@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Clear
@@ -177,9 +178,9 @@ fun ConfessionScreen(
                 }
             }
 
-            // Compact Dropdown Filter Row
-            var isCategoryMenuExpanded by remember { mutableStateOf(false) }
-            var isSortMenuExpanded by remember { mutableStateOf(false) }
+            // Horizontal Expandable Filter Line
+            var isCategoryExpanded by remember { mutableStateOf(false) }
+            var isSortExpanded by remember { mutableStateOf(false) }
 
             Row(
                 modifier = Modifier
@@ -188,102 +189,132 @@ fun ConfessionScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Category Dropdown Badge
-                Box {
-                    Surface(
-                        shape = CircleShape,
-                        color = ProPurpleContainer,
-                        modifier = Modifier.clickable { isCategoryMenuExpanded = true }
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                // Category Section
+                if (!isSortExpanded) {
+                    if (isCategoryExpanded) {
+                        // Horizontal Scrolling Category Chips across line
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.weight(1f)
                         ) {
-                            Text(
-                                text = "${selectedCategory.iconEmoji} ${selectedCategory.displayName}",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = ProPurpleOnContainer
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Icon(
-                                imageVector = Icons.Default.ArrowDropDown,
-                                contentDescription = "Category Dropdown",
-                                tint = ProPurpleOnContainer,
-                                modifier = Modifier.size(18.dp)
-                            )
+                            items(ConfessionCategory.entries.toTypedArray()) { category ->
+                                val isSelected = selectedCategory == category
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = {
+                                        viewModel.selectCategory(category)
+                                        isCategoryExpanded = false
+                                    },
+                                    label = {
+                                        Text(
+                                            text = "${category.iconEmoji} ${category.displayName}",
+                                            fontSize = 12.sp,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                        )
+                                    },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = ProPurpleContainer,
+                                        selectedLabelColor = ProPurpleOnContainer
+                                    ),
+                                    shape = CircleShape
+                                )
+                            }
                         }
-                    }
-
-                    DropdownMenu(
-                        expanded = isCategoryMenuExpanded,
-                        onDismissRequest = { isCategoryMenuExpanded = false }
-                    ) {
-                        ConfessionCategory.entries.forEach { category ->
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        text = "${category.iconEmoji} ${category.displayName}",
-                                        fontSize = 13.sp,
-                                        fontWeight = if (selectedCategory == category) FontWeight.Bold else FontWeight.Normal,
-                                        color = if (selectedCategory == category) ProPurplePrimary else MaterialTheme.colorScheme.onSurface
-                                    )
-                                },
-                                onClick = {
-                                    viewModel.selectCategory(category)
-                                    isCategoryMenuExpanded = false
-                                }
-                            )
+                    } else {
+                        // Compact Category Badge
+                        Surface(
+                            shape = CircleShape,
+                            color = ProPurpleContainer,
+                            modifier = Modifier.clickable {
+                                isCategoryExpanded = true
+                                isSortExpanded = false
+                            }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "${selectedCategory.iconEmoji} ${selectedCategory.displayName}",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = ProPurpleOnContainer
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDropDown,
+                                    contentDescription = "Expand Categories",
+                                    tint = ProPurpleOnContainer,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
                         }
                     }
                 }
 
-                // Sort Order Dropdown Badge
-                Box {
-                    Surface(
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        modifier = Modifier.clickable { isSortMenuExpanded = true }
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "${sortOrder.iconEmoji} ${sortOrder.displayName}",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Icon(
-                                imageVector = Icons.Default.ArrowDropDown,
-                                contentDescription = "Sort Dropdown",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-                    }
+                if (!isCategoryExpanded && !isSortExpanded) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
 
-                    DropdownMenu(
-                        expanded = isSortMenuExpanded,
-                        onDismissRequest = { isSortMenuExpanded = false }
-                    ) {
-                        ConfessionSortOrder.entries.forEach { sort ->
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        text = "${sort.iconEmoji} ${sort.displayName}",
-                                        fontSize = 13.sp,
-                                        fontWeight = if (sortOrder == sort) FontWeight.Bold else FontWeight.Normal,
-                                        color = if (sortOrder == sort) ProPurplePrimary else MaterialTheme.colorScheme.onSurface
-                                    )
-                                },
-                                onClick = {
-                                    viewModel.setSortOrder(sort)
-                                    isSortMenuExpanded = false
-                                }
-                            )
+                // Sort Section
+                if (!isCategoryExpanded) {
+                    if (isSortExpanded) {
+                        // Horizontal Sort Options across line
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            ConfessionSortOrder.entries.forEach { sort ->
+                                val isSelected = sortOrder == sort
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = {
+                                        viewModel.setSortOrder(sort)
+                                        isSortExpanded = false
+                                    },
+                                    label = {
+                                        Text(
+                                            text = "${sort.iconEmoji} ${sort.displayName}",
+                                            fontSize = 12.sp,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                        )
+                                    },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = ProPurplePrimary,
+                                        selectedLabelColor = Color.White
+                                    ),
+                                    shape = CircleShape
+                                )
+                            }
+                        }
+                    } else {
+                        // Compact Sort Badge
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            modifier = Modifier.clickable {
+                                isSortExpanded = true
+                                isCategoryExpanded = false
+                            }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "${sortOrder.iconEmoji} ${sortOrder.displayName}",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDropDown,
+                                    contentDescription = "Expand Sort",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
                         }
                     }
                 }
