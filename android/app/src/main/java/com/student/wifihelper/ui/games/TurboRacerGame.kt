@@ -53,6 +53,7 @@ import com.student.wifihelper.ui.theme.ProPurpleOnContainer
 import com.student.wifihelper.ui.theme.ProPurplePrimary
 import com.student.wifihelper.ui.theme.StatusGreen
 import kotlinx.coroutines.delay
+import kotlin.math.abs
 
 data class TrafficObstacle(
     val lane: Int, // 0, 1, 2
@@ -98,10 +99,13 @@ fun TurboRacerGame(
             val iterator = obstacles.iterator()
             while (iterator.hasNext()) {
                 val obs = iterator.next()
-                obs.yPos += 20f
+                obs.yPos += 18f
 
-                // Collision check against smooth interpolated car position
-                if (obs.yPos in 650f..820f && obs.lane == playerLane) {
+                // Exact visual bounding box collision check
+                val isVisualYOverlap = abs(obs.yPos - 780f) < 45f
+                val isVisualXOverlap = abs(animatedLaneOffset - obs.lane.toFloat()) < 0.45f
+
+                if (isVisualYOverlap && isVisualXOverlap) {
                     if (obs.isDataPacket) {
                         score += 25
                         iterator.remove()
