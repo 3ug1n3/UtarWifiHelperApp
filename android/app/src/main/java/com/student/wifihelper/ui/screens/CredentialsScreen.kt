@@ -250,13 +250,12 @@ fun CredentialsScreen(
                     color = MaterialTheme.colorScheme.onBackground
                 )
 
-                // Remaining Unlocked Time Status Banner
-                val now = System.currentTimeMillis()
-                val expirationTime = config?.autoConnectExpirationTime ?: 0L
-                val remainingMs = (expirationTime - now).coerceAtLeast(0L)
-                val remainingHours = remainingMs / (1000 * 60 * 60)
-                val remainingMinutes = (remainingMs / (1000 * 60)) % 60
-                val isUnlocked = remainingMs > 0L
+                // Remaining Unlocked Time Status Banner (Ticking only when Auto-Connect is ON)
+                val remainingSeconds = config?.autoConnectRemainingSeconds ?: 0L
+                val isUnlocked = remainingSeconds > 0L
+                val remainingHours = remainingSeconds / 3600L
+                val remainingMinutes = (remainingSeconds % 3600L) / 60L
+                val remainingSecs = remainingSeconds % 60L
 
                 Surface(
                     shape = RoundedCornerShape(14.dp),
@@ -275,14 +274,14 @@ fun CredentialsScreen(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(
-                                text = if (isUnlocked) "Auto-Connect Unlocked" else "Auto-Connect Time Locked",
+                                text = if (isUnlocked) (if (autoLoginEnabled) "Auto-Connect Active (Counting Down)" else "Auto-Connect Paused (Saved)") else "Auto-Connect Time Locked",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 14.sp,
                                 color = if (isUnlocked) ProPurpleOnContainer else MaterialTheme.colorScheme.onSurface
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = if (isUnlocked) "Time remaining: ${remainingHours}h ${remainingMinutes}m" else "Earn points in Games tab to unlock auto-connect hours!",
+                                text = if (isUnlocked) "Time remaining: ${remainingHours}h ${remainingMinutes}m ${remainingSecs}s ${if (!autoLoginEnabled) "(PAUSED)" else ""}" else "Earn points in Games tab to unlock auto-connect hours!",
                                 fontSize = 12.sp,
                                 fontWeight = if (isUnlocked) FontWeight.SemiBold else FontWeight.Normal,
                                 color = if (isUnlocked) ProPurplePrimary else MaterialTheme.colorScheme.onSurfaceVariant

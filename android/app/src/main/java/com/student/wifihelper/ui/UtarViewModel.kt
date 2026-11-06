@@ -10,11 +10,13 @@ import com.student.wifihelper.data.model.NetworkState
 import com.student.wifihelper.data.model.UserConfig
 import com.student.wifihelper.data.repository.UtarRepository
 import com.student.wifihelper.data.service.UtarWifiService
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class UtarViewModel(application: Application) : AndroidViewModel(application) {
@@ -65,6 +67,25 @@ class UtarViewModel(application: Application) : AndroidViewModel(application) {
         checkNetworkStatus()
         checkOnboardingStatus()
         startDataUsageTracking()
+        startAutoConnectTicker()
+    }
+
+    private fun startAutoConnectTicker() {
+        viewModelScope.launch {
+            while (isActive) {
+                delay(1000)
+                val current = configState.value ?: continue
+                if (current.autoLoginEnabled && current.autoConnectRemainingSeconds > 0L) {
+                    val newSeconds = (current.autoConnectRemainingSeconds - 1L).coerceAtLeast(0L)
+                    val newEnabled = if (newSeconds == 0L) false else current.autoLoginEnabled
+                    val updated = current.copy(
+                        autoConnectRemainingSeconds = newSeconds,
+                        autoLoginEnabled = newEnabled
+                    )
+                    repository.saveConfig(updated)
+                }
+            }
+        }
     }
 
     private fun startDataUsageTracking() {
@@ -208,12 +229,10 @@ class UtarViewModel(application: Application) : AndroidViewModel(application) {
     fun redeemAutoConnectHours(hours: Int) {
         viewModelScope.launch {
             val current = configState.value ?: UserConfig()
-            val now = System.currentTimeMillis()
-            val currentExp = current.autoConnectExpirationTime.coerceAtLeast(now)
-            val newExp = currentExp + (hours * 3600_000L)
+            val newSeconds = current.autoConnectRemainingSeconds + (hours * 3600L)
             val updated = current.copy(
                 autoLoginEnabled = true,
-                autoConnectExpirationTime = newExp
+                autoConnectRemainingSeconds = newSeconds
             )
             repository.saveConfig(updated)
             repository.triggerWifiNudge(updated.targetSsid)

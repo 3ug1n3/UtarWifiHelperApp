@@ -16,5 +16,5 @@ data class UserConfig(
     val lastStatusMessage: String = "Not initiated",
     val isOnboardingCompleted: Boolean = false,
     val biometricLockEnabled: Boolean = false,
-    val autoConnectExpirationTime: Long = 0L
+    val autoConnectRemainingSeconds: Long = 0L
 )
