@@ -57,7 +57,7 @@ import kotlin.math.abs
 
 data class TrafficObstacle(
     val lane: Int, // 0, 1, 2
-    var yPos: Float,
+    var yPosProgress: Float, // 0.0f (top) to 1.0f (bottom)
     val isDataPacket: Boolean = false
 )
 
@@ -89,21 +89,21 @@ fun TurboRacerGame(
             roadOffsetY = (roadOffsetY + 18f) % 60f
 
             // Spawn obstacles
-            if (frameCounter % 30 == 0) {
+            if (frameCounter % 32 == 0) {
                 val spawnLane = kotlin.random.Random.nextInt(3)
                 val isData = kotlin.random.Random.nextBoolean()
-                obstacles.add(TrafficObstacle(lane = spawnLane, yPos = -100f, isDataPacket = isData))
+                obstacles.add(TrafficObstacle(lane = spawnLane, yPosProgress = -0.1f, isDataPacket = isData))
             }
 
-            // Move obstacles down
+            // Move obstacles down smoothly
             val iterator = obstacles.iterator()
             while (iterator.hasNext()) {
                 val obs = iterator.next()
-                obs.yPos += 18f
+                obs.yPosProgress += 0.018f
 
-                // Exact visual bounding box collision check
-                val isVisualYOverlap = abs(obs.yPos - 780f) < 45f
-                val isVisualXOverlap = abs(animatedLaneOffset - obs.lane.toFloat()) < 0.45f
+                // Exact relative visual bounding box collision check at player Y (0.78f)
+                val isVisualYOverlap = abs(obs.yPosProgress - 0.78f) < 0.045f
+                val isVisualXOverlap = abs(animatedLaneOffset - obs.lane.toFloat()) < 0.40f
 
                 if (isVisualYOverlap && isVisualXOverlap) {
                     if (obs.isDataPacket) {
@@ -113,7 +113,7 @@ fun TurboRacerGame(
                         isGameOver = true
                         onGameEnd(score + (distanceMeters / 10))
                     }
-                } else if (obs.yPos > 1200f) {
+                } else if (obs.yPosProgress > 1.1f) {
                     iterator.remove()
                 }
             }
@@ -226,19 +226,20 @@ fun TurboRacerGame(
                         y += dashHeight + dashGap
                     }
 
-                    // Draw Obstacles & Data Orbs
+                    // Draw Obstacles & Data Orbs with Exact Relative Y Coordinate
                     obstacles.forEach { obs ->
                         val obsX = (obs.lane * laneWidth) + (laneWidth / 2f)
+                        val obsY = obs.yPosProgress * size.height
                         if (obs.isDataPacket) {
                             drawCircle(
                                 color = StatusGreen,
                                 radius = 24f,
-                                center = Offset(obsX, obs.yPos)
+                                center = Offset(obsX, obsY)
                             )
                         } else {
                             drawRoundRect(
                                 color = Color(0xFFE91E63),
-                                topLeft = Offset(obsX - 32f, obs.yPos - 45f),
+                                topLeft = Offset(obsX - 32f, obsY - 45f),
                                 size = Size(64f, 90f),
                                 cornerRadius = CornerRadius(14f)
                             )
