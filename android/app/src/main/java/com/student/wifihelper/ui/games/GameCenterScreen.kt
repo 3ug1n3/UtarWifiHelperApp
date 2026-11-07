@@ -113,6 +113,20 @@ fun GameCenterScreen(
                     },
                     onClose = { activeGame = null }
                 )
+                MiniGameType.TARGET_SHOOTER -> TargetShooterGame(
+                    onGameEnd = { earned ->
+                        onAddPoints(earned)
+                        Toast.makeText(context, "🎉 +$earned Points Earned!", Toast.LENGTH_SHORT).show()
+                    },
+                    onClose = { activeGame = null }
+                )
+                MiniGameType.MEMORY_MATCH -> MemoryMatchGame(
+                    onGameEnd = { earned ->
+                        onAddPoints(earned)
+                        Toast.makeText(context, "🎉 +$earned Points Earned!", Toast.LENGTH_SHORT).show()
+                    },
+                    onClose = { activeGame = null }
+                )
                 else -> {}
             }
         } else {

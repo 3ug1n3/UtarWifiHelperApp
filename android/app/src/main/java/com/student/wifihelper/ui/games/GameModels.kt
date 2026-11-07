@@ -32,6 +32,18 @@ enum class MiniGameType(
         description = "Tap to flap Kampar Lake Duck between tall Wi-Fi antenna towers!",
         iconEmoji = "🐤",
         rewardMultiplier = "+10 Pts / Tower"
+    ),
+    TARGET_SHOOTER(
+        title = "Signal Target Shooter",
+        description = "Tap popping Wi-Fi target orbs before they shrink! Features dynamic level waves.",
+        iconEmoji = "🎯",
+        rewardMultiplier = "+15 Pts / Target"
+    ),
+    MEMORY_MATCH(
+        title = "Campus Memory Match",
+        description = "Flip cards to find matching campus icons. Test your memory speed!",
+        iconEmoji = "🧠",
+        rewardMultiplier = "+20 Pts / Match"
     )
 }
 
