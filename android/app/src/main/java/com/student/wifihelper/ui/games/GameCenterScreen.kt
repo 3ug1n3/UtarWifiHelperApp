@@ -1,7 +1,15 @@
 package com.student.wifihelper.ui.games
 
+import android.content.Intent
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -59,6 +67,10 @@ fun GameCenterScreen(
 ) {
     val context = LocalContext.current
     var activeGame by remember { mutableStateOf<MiniGameType?>(null) }
+    var showCreatePkDialog by remember { mutableStateOf(false) }
+    var showJoinPkDialog by remember { mutableStateOf(false) }
+    var pkRoomCodeInput by remember { mutableStateOf("") }
+    var generatedRoomCode by remember { mutableStateOf("1024") }
 
     val rewardedAdUnitId = "ca-app-pub-9942249708634262/1721313103"
     var rewardedAd by remember { mutableStateOf<RewardedAd?>(null) }
@@ -209,7 +221,87 @@ fun GameCenterScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // 1v1 Friend PK Duel Section
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    shape = RoundedCornerShape(20.dp),
+                    border = BorderStroke(1.dp, ProPurplePrimary.copy(alpha = 0.3f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(text = "⚔️", fontSize = 24.sp)
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = "1v1 Friend PK Duel",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "Challenge a UTAR friend to a live duel & win +100 Pts!",
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Button(
+                                onClick = {
+                                    generatedRoomCode = kotlin.random.Random.nextInt(1000, 9999).toString()
+                                    showCreatePkDialog = true
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = ProPurplePrimary),
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text("Create Room", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+
+                            Button(
+                                onClick = { showJoinPkDialog = true },
+                                colors = ButtonDefaults.buttonColors(containerColor = ProPurpleContainer, contentColor = ProPurpleOnContainer),
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text("Join Room", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+
+                            IconButton(
+                                onClick = {
+                                    try {
+                                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                            type = "text/plain"
+                                            putExtra(
+                                                Intent.EXTRA_TEXT,
+                                                "⚔️ UTAR FRIEND PK CHALLENGE!\n\nI just scored $userPoints Points in UTAR Mini-Games! Can you beat my high score?\n\nPlay & Challenge me on U不停歇WIFI助手 App 🎓"
+                                            )
+                                        }
+                                        context.startActivity(Intent.createChooser(shareIntent, "Challenge Friend via"))
+                                    } catch (e: Exception) {
+                                        Toast.makeText(context, "Unable to open share menu", Toast.LENGTH_SHORT).show()
+                                    }
+                                },
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .background(ProPurplePrimary.copy(alpha = 0.15f), CircleShape)
+                            ) {
+                                Icon(imageVector = Icons.Outlined.Share, contentDescription = "Share Challenge", tint = ProPurplePrimary)
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
                     text = "🎮 Select Mini-Game",
@@ -420,5 +512,96 @@ fun GameCenterScreen(
                 Spacer(modifier = Modifier.height(24.dp))
             }
         }
+    }
+
+    // Create PK Room Dialog
+    if (showCreatePkDialog) {
+        AlertDialog(
+            onDismissRequest = { showCreatePkDialog = false },
+            title = { Text("⚔️ 1v1 Friend PK Room Created") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Your PK Room Code is:", fontSize = 13.sp)
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = ProPurpleContainer,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Box(modifier = Modifier.padding(14.dp), contentAlignment = Alignment.Center) {
+                            Text(text = "Room #$generatedRoomCode", fontWeight = FontWeight.Bold, fontSize = 22.sp, color = ProPurplePrimary)
+                        }
+                    }
+                    Text("Share this Room Code with your UTAR friend to start the live duel!", fontSize = 12.sp, color = Color.Gray)
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        try {
+                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(
+                                    Intent.EXTRA_TEXT,
+                                    "⚔️ UTAR FRIEND 1v1 PK DUEL!\n\nJoin my PK Room #$generatedRoomCode on U不停歇WIFI助手 App!\n\nWinner gets +100 Bonus Auto-Connect Points! 🎓"
+                                )
+                            }
+                            context.startActivity(Intent.createChooser(shareIntent, "Share Room Code via"))
+                        } catch (e: Exception) {}
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = ProPurplePrimary)
+                ) {
+                    Icon(imageVector = Icons.Outlined.Share, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Share on WhatsApp")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCreatePkDialog = false }) {
+                    Text("Close")
+                }
+            }
+        )
+    }
+
+    // Join PK Room Dialog
+    if (showJoinPkDialog) {
+        AlertDialog(
+            onDismissRequest = { showJoinPkDialog = false },
+            title = { Text("⚔️ Join Friend PK Room") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Enter your friend's 4-digit Room Code:", fontSize = 13.sp)
+                    OutlinedTextField(
+                        value = pkRoomCodeInput,
+                        onValueChange = { pkRoomCodeInput = it },
+                        placeholder = { Text("e.g. 1024") },
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (pkRoomCodeInput.trim().isNotBlank()) {
+                            showJoinPkDialog = false
+                            activeGame = MiniGameType.ROUTER_THROW
+                            Toast.makeText(context, "⚔️ Joined PK Room #${pkRoomCodeInput.trim()}! Best of 1 Duel!", Toast.LENGTH_SHORT).show()
+                            pkRoomCodeInput = ""
+                        }
+                    },
+                    enabled = pkRoomCodeInput.trim().isNotBlank(),
+                    colors = ButtonDefaults.buttonColors(containerColor = ProPurplePrimary)
+                ) {
+                    Text("Join & Play Duel")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showJoinPkDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }

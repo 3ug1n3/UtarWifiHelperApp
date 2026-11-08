@@ -47,6 +47,15 @@ enum class MiniGameType(
     )
 }
 
+data class PkRoomSession(
+    val roomCode: String,
+    val gameType: MiniGameType = MiniGameType.ROUTER_THROW,
+    var hostScore: Int = 0,
+    var guestScore: Int = 0,
+    var isGuestJoined: Boolean = false,
+    var isFinished: Boolean = false
+)
+
 data class AutoConnectRedemptionOffer(
     val pointsCost: Int,
     val durationHours: Int,
