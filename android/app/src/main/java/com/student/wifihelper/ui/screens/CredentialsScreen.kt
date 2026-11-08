@@ -15,10 +15,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Feedback
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -31,6 +33,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.SnackbarHost
@@ -403,6 +406,89 @@ fun CredentialsScreen(
                             checkedTrackColor = ProPurplePrimary
                         )
                     )
+                }
+            }
+        }
+
+        // Feedback & Bug Report Card
+        var feedbackText by remember { mutableStateOf("") }
+        var isSubmittingFeedback by remember { mutableStateOf(false) }
+
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            shape = RoundedCornerShape(20.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, ProOutline),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Feedback,
+                        contentDescription = null,
+                        tint = ProPurplePrimary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        text = "Feedback & Bug Report",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+
+                Text(
+                    text = "Facing an issue or have a feature suggestion? Let us know so we can improve the app for you!",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                OutlinedTextField(
+                    value = feedbackText,
+                    onValueChange = { feedbackText = it },
+                    placeholder = { Text("Write your feedback or issue report here...", fontSize = 13.sp) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = ProPurplePrimary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                    )
+                )
+
+                Button(
+                    onClick = {
+                        val text = feedbackText.trim()
+                        if (text.isNotBlank()) {
+                            isSubmittingFeedback = true
+                            scope.launch {
+                                try {
+                                    val data = mapOf(
+                                        "content" to text,
+                                        "timestamp" to System.currentTimeMillis()
+                                    )
+                                    com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                                        .collection("feedback")
+                                        .add(data)
+                                } catch (e: Exception) {}
+                                isSubmittingFeedback = false
+                                feedbackText = ""
+                                snackbarHostState.showSnackbar("Thank you! Your feedback has been received.")
+                            }
+                        }
+                    },
+                    enabled = feedbackText.trim().isNotBlank() && !isSubmittingFeedback,
+                    colors = ButtonDefaults.buttonColors(containerColor = ProPurplePrimary),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(imageVector = Icons.Default.Send, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(if (isSubmittingFeedback) "Submitting..." else "Submit Feedback", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 }
             }
         }
