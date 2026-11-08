@@ -14,8 +14,9 @@ class FirebasePkRepository {
     private val firestore by lazy { FirebaseFirestore.getInstance() }
 
     fun observePkRoom(roomCode: String): Flow<PkRoomSession?> = callbackFlow {
+        val cleanCode = roomCode.replace(Regex("[^0-9]"), "").trim()
         val listener = try {
-            firestore.collection("pk_rooms").document(roomCode)
+            firestore.collection("pk_rooms").document(cleanCode)
                 .addSnapshotListener { snapshot, error ->
                     if (error != null || snapshot == null || !snapshot.exists()) {
                         trySend(null)
@@ -23,7 +24,7 @@ class FirebasePkRepository {
                     }
 
                     try {
-                        val code = snapshot.getString("roomCode") ?: roomCode
+                        val code = snapshot.getString("roomCode") ?: cleanCode
                         val gameTypeStr = snapshot.getString("gameType") ?: MiniGameType.ROUTER_THROW.name
                         val gameType = try {
                             MiniGameType.valueOf(gameTypeStr)
@@ -57,16 +58,17 @@ class FirebasePkRepository {
     }
 
     suspend fun createPkRoom(roomCode: String, gameType: MiniGameType): Result<Unit> {
+        val cleanCode = roomCode.replace(Regex("[^0-9]"), "").trim()
         return try {
             val data = mapOf(
-                "roomCode" to roomCode,
+                "roomCode" to cleanCode,
                 "gameType" to gameType.name,
                 "hostScore" to 0,
                 "guestScore" to 0,
                 "status" to "WAITING",
                 "timestamp" to System.currentTimeMillis()
             )
-            firestore.collection("pk_rooms").document(roomCode).set(data).await()
+            firestore.collection("pk_rooms").document(cleanCode).set(data).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -74,14 +76,28 @@ class FirebasePkRepository {
     }
 
     suspend fun joinPkRoom(roomCode: String): Result<Unit> {
+        val cleanCode = roomCode.replace(Regex("[^0-9]"), "").trim()
+        if (cleanCode.isEmpty()) return Result.failure(Exception("Invalid Room Code"))
+
         return try {
-            val docRef = firestore.collection("pk_rooms").document(roomCode)
+            val docRef = firestore.collection("pk_rooms").document(cleanCode)
             val doc = docRef.get().await()
             if (doc.exists()) {
                 docRef.update("status", "PLAYING").await()
                 Result.success(Unit)
             } else {
-                Result.failure(Exception("Room not found"))
+                val query = firestore.collection("pk_rooms")
+                    .whereEqualTo("roomCode", cleanCode)
+                    .get()
+                    .await()
+
+                val foundDoc = query.documents.firstOrNull()
+                if (foundDoc != null) {
+                    foundDoc.reference.update("status", "PLAYING").await()
+                    Result.success(Unit)
+                } else {
+                    Result.failure(Exception("Room #$cleanCode not found or expired"))
+                }
             }
         } catch (e: Exception) {
             Result.failure(e)
