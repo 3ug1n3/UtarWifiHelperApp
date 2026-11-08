@@ -305,7 +305,10 @@ fun CredentialsScreen(
                     }
                     Switch(
                         checked = autoLoginEnabled,
-                        onCheckedChange = { autoLoginEnabled = it },
+                        onCheckedChange = { enabled ->
+                            autoLoginEnabled = enabled
+                            onSaveConfig(usernameDraft, passwordDraft, targetSsid, enabled, pollingInterval, biometricLockEnabled)
+                        },
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = Color.White,
                             checkedTrackColor = ProPurplePrimary

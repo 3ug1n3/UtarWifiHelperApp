@@ -39,10 +39,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -514,8 +516,24 @@ fun GameCenterScreen(
         }
     }
 
-    // Create PK Room Dialog
+    // Create PK Room Dialog (Live Cloud Room)
     if (showCreatePkDialog) {
+        val pkRepo = remember { com.student.wifihelper.data.repository.FirebasePkRepository() }
+
+        LaunchedEffect(generatedRoomCode) {
+            pkRepo.createPkRoom(generatedRoomCode, MiniGameType.ROUTER_THROW)
+        }
+
+        val pkSession by pkRepo.observePkRoom(generatedRoomCode).collectAsState(initial = null)
+
+        LaunchedEffect(pkSession?.isGuestJoined) {
+            if (pkSession?.isGuestJoined == true) {
+                showCreatePkDialog = false
+                activeGame = MiniGameType.ROUTER_THROW
+                Toast.makeText(context, "⚔️ Friend Joined Room #$generatedRoomCode! Live Duel Started!", Toast.LENGTH_SHORT).show()
+            }
+        }
+
         AlertDialog(
             onDismissRequest = { showCreatePkDialog = false },
             title = { Text("⚔️ 1v1 Friend PK Room Created") },
@@ -531,7 +549,7 @@ fun GameCenterScreen(
                             Text(text = "Room #$generatedRoomCode", fontWeight = FontWeight.Bold, fontSize = 22.sp, color = ProPurplePrimary)
                         }
                     }
-                    Text("Share this Room Code with your UTAR friend to start the live duel!", fontSize = 12.sp, color = Color.Gray)
+                    Text("⏳ Waiting for friend to enter code & join live duel...", fontSize = 12.sp, color = ProPurplePrimary, fontWeight = FontWeight.SemiBold)
                 }
             },
             confirmButton = {
@@ -542,7 +560,7 @@ fun GameCenterScreen(
                                 type = "text/plain"
                                 putExtra(
                                     Intent.EXTRA_TEXT,
-                                    "⚔️ UTAR FRIEND 1v1 PK DUEL!\n\nJoin my PK Room #$generatedRoomCode on U不停歇WIFI助手 App!\n\nWinner gets +100 Bonus Auto-Connect Points! 🎓"
+                                    "⚔️ UTAR FRIEND 1v1 PK DUEL!\n\nJoin my live PK Room #$generatedRoomCode on U不停歇WIFI助手 App!\n\nWinner gets +100 Bonus Auto-Connect Points! 🎓"
                                 )
                             }
                             context.startActivity(Intent.createChooser(shareIntent, "Share Room Code via"))
@@ -557,7 +575,7 @@ fun GameCenterScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showCreatePkDialog = false }) {
-                    Text("Close")
+                    Text("Cancel")
                 }
             }
         )
@@ -565,6 +583,9 @@ fun GameCenterScreen(
 
     // Join PK Room Dialog
     if (showJoinPkDialog) {
+        val pkRepo = remember { com.student.wifihelper.data.repository.FirebasePkRepository() }
+        val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
+
         AlertDialog(
             onDismissRequest = { showJoinPkDialog = false },
             title = { Text("⚔️ Join Friend PK Room") },
@@ -584,17 +605,25 @@ fun GameCenterScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        if (pkRoomCodeInput.trim().isNotBlank()) {
-                            showJoinPkDialog = false
-                            activeGame = MiniGameType.ROUTER_THROW
-                            Toast.makeText(context, "⚔️ Joined PK Room #${pkRoomCodeInput.trim()}! Best of 1 Duel!", Toast.LENGTH_SHORT).show()
-                            pkRoomCodeInput = ""
+                        val code = pkRoomCodeInput.trim()
+                        if (code.isNotBlank()) {
+                            coroutineScope.launch {
+                                val result = pkRepo.joinPkRoom(code)
+                                if (result.isSuccess) {
+                                    showJoinPkDialog = false
+                                    activeGame = MiniGameType.ROUTER_THROW
+                                    Toast.makeText(context, "⚔️ Joined PK Room #$code! Live Duel Started!", Toast.LENGTH_SHORT).show()
+                                    pkRoomCodeInput = ""
+                                } else {
+                                    Toast.makeText(context, "Room #$code not found or expired. Please check code!", Toast.LENGTH_SHORT).show()
+                                }
+                            }
                         }
                     },
                     enabled = pkRoomCodeInput.trim().isNotBlank(),
                     colors = ButtonDefaults.buttonColors(containerColor = ProPurplePrimary)
                 ) {
-                    Text("Join & Play Duel")
+                    Text("Join & Play Live Duel")
                 }
             },
             dismissButton = {
