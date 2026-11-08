@@ -1,5 +1,7 @@
 package com.student.wifihelper.ui.games
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -44,6 +47,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.student.wifihelper.ui.theme.ProPurpleContainer
@@ -63,6 +67,14 @@ data class SparkParticle(
     var alpha: Float = 1.0f
 )
 
+data class FloatingTextPopup(
+    val text: String,
+    val color: Color,
+    var x: Float,
+    var y: Float,
+    var alpha: Float = 1.0f
+)
+
 @Composable
 fun RouterThrowGame(
     onGameEnd: (score: Int) -> Unit,
@@ -71,11 +83,13 @@ fun RouterThrowGame(
     var score by remember { mutableIntStateOf(0) }
     var level by remember { mutableIntStateOf(1) }
     var knivesRemaining by remember { mutableIntStateOf(7) }
+    var comboStreak by remember { mutableIntStateOf(0) }
     var isGameOver by remember { mutableStateOf(false) }
     var isWin by remember { mutableStateOf(false) }
 
     val stuckAngles = remember { mutableStateListOf<Float>() }
     val particles = remember { mutableStateListOf<SparkParticle>() }
+    val popups = remember { mutableStateListOf<FloatingTextPopup>() }
 
     var flyingKnifeProgress by remember { mutableFloatStateOf(0f) }
     var isKnifeFlying by remember { mutableStateOf(false) }
@@ -83,17 +97,29 @@ fun RouterThrowGame(
     var wheelAngle by remember { mutableFloatStateOf(0f) }
     var wheelSpeed by remember { mutableFloatStateOf(2.5f) }
 
-    // Smooth Wheel Rotation Loop
+    var shakeOffsetX by remember { mutableFloatStateOf(0f) }
+
+    // Screen shake trigger
+    fun triggerScreenShake() {
+        shakeOffsetX = if (kotlin.random.Random.nextBoolean()) 12f else -12f
+    }
+
+    // Smooth Wheel Rotation & Screen Shake Decay Loop
     LaunchedEffect(isGameOver, level) {
         var stepCount = 0
         while (!isGameOver) {
             stepCount++
-            // Sine-wave speed fluctuation for smooth difficulty
-            val speedFactor = 1.0f + 0.3f * sin(stepCount * 0.05f).toFloat()
+            val speedFactor = 1.0f + 0.3f * sin(stepCount * 0.05f)
             wheelAngle = (wheelAngle + wheelSpeed * speedFactor) % 360f
 
             if (stepCount % 120 == 0 && level >= 2) {
-                wheelSpeed = -wheelSpeed // Smooth direction reversal
+                wheelSpeed = -wheelSpeed
+            }
+
+            // Decay screen shake
+            if (shakeOffsetX != 0f) {
+                shakeOffsetX = -shakeOffsetX * 0.5f
+                if (abs(shakeOffsetX) < 1f) shakeOffsetX = 0f
             }
 
             // Update particle effects
@@ -106,6 +132,15 @@ fun RouterThrowGame(
                 if (p.alpha <= 0f) iter.remove()
             }
 
+            // Update Floating Text Popups
+            val popIter = popups.iterator()
+            while (popIter.hasNext()) {
+                val pop = popIter.next()
+                pop.y -= 2f
+                pop.alpha -= 0.04f
+                if (pop.alpha <= 0f) popIter.remove()
+            }
+
             delay(16)
         }
     }
@@ -115,7 +150,7 @@ fun RouterThrowGame(
         if (isKnifeFlying) {
             var progress = 0f
             while (progress < 1.0f) {
-                progress += 0.2f
+                progress += 0.22f
                 flyingKnifeProgress = progress
                 delay(16)
             }
@@ -125,27 +160,36 @@ fun RouterThrowGame(
 
             val hitAngleOnWheel = (270f - wheelAngle + 360f) % 360f
 
-            // Collision Check (within 18 degrees)
+            // Collision Check
             val isCollision = stuckAngles.any { angle ->
                 val diff = abs(angle - hitAngleOnWheel)
                 diff < 18f || (360f - diff) < 18f
             }
 
             if (isCollision) {
+                triggerScreenShake()
                 isGameOver = true
                 isWin = false
             } else {
                 stuckAngles.add(hitAngleOnWheel)
-                score += 10
+                comboStreak++
+                val comboBonus = if (comboStreak > 1) comboStreak * 5 else 0
+                val earned = 10 + comboBonus
+                score += earned
                 knivesRemaining--
+                triggerScreenShake()
+
+                // Spawn floating combo text
+                val comboMsg = if (comboStreak > 2) "🔥 COMBO x$comboStreak! +$earned" else "⚡ PERFECT! +$earned"
+                popups.add(FloatingTextPopup(comboMsg, Color(0xFFFFD54F), 0f, 0f))
 
                 // Spawn Spark Particles
-                for (i in 0..12) {
+                for (i in 0..14) {
                     val angleRad = kotlin.random.Random.nextDouble(0.0, 2 * Math.PI)
-                    val speed = kotlin.random.Random.nextFloat() * 8f + 2f
+                    val speed = kotlin.random.Random.nextFloat() * 10f + 3f
                     particles.add(
                         SparkParticle(
-                            x = 0f, // Center relative
+                            x = 0f,
                             y = 0f,
                             vx = (cos(angleRad) * speed).toFloat(),
                             vy = (sin(angleRad) * speed).toFloat()
@@ -158,7 +202,7 @@ fun RouterThrowGame(
                         level++
                         knivesRemaining = 7 + level
                         stuckAngles.clear()
-                        wheelSpeed = if (level % 2 == 0) -3.5f else 3.5f
+                        wheelSpeed = if (level % 2 == 0) -3.8f else 3.8f
                     } else {
                         isGameOver = true
                         isWin = true
@@ -172,6 +216,7 @@ fun RouterThrowGame(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .offset { IntOffset(shakeOffsetX.toInt(), 0) }
             .background(Color(0xFF141218))
     ) {
         Column(
@@ -181,7 +226,7 @@ fun RouterThrowGame(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Header
+            // Header Bar
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -195,9 +240,10 @@ fun RouterThrowGame(
                         color = Color.White
                     )
                     Text(
-                        text = "Tap screen to launch antenna into spinning hub!",
+                        text = if (comboStreak > 1) "🔥 $comboStreak HIT COMBO STREAK!" else "Tap to launch antenna into spinning hub!",
                         fontSize = 12.sp,
-                        color = Color.Gray
+                        fontWeight = if (comboStreak > 1) FontWeight.Bold else FontWeight.Normal,
+                        color = if (comboStreak > 1) Color(0xFFFFD54F) else Color.Gray
                     )
                 }
 
@@ -238,7 +284,7 @@ fun RouterThrowGame(
                 }
             }
 
-            // Game Canvas
+            // Canvas Game Area
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -328,7 +374,7 @@ fun RouterThrowGame(
                 }
             }
 
-            // Bottom Tap Prompt / Game Over Popup
+            // Game Over / Victory Star Rating Popup
             if (isGameOver) {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = if (isWin) ProPurpleContainer else MaterialTheme.colorScheme.errorContainer),
@@ -340,7 +386,7 @@ fun RouterThrowGame(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = if (isWin) "🎉 Level Cleared! +$score Pts" else "💥 Collision! +$score Pts",
+                            text = if (isWin) "⭐⭐⭐ VICTORY! +$score Pts" else "💥 Collision! Earned $score Pts",
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp,
                             color = if (isWin) ProPurpleOnContainer else MaterialTheme.colorScheme.onErrorContainer
@@ -350,6 +396,7 @@ fun RouterThrowGame(
                             onClick = {
                                 score = 0
                                 level = 1
+                                comboStreak = 0
                                 knivesRemaining = 7
                                 stuckAngles.clear()
                                 isGameOver = false
