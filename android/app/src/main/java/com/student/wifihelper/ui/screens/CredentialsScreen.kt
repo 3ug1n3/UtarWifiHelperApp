@@ -1,5 +1,6 @@
 package com.student.wifihelper.ui.screens
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -122,12 +123,15 @@ fun CredentialsScreen(
         }
     }
 
+    var isConfigInitialized by remember { mutableStateOf(false) }
+
     LaunchedEffect(config) {
-        if (config != null) {
+        if (config != null && !isConfigInitialized) {
             targetSsid = config.targetSsid
             autoLoginEnabled = config.autoLoginEnabled
             pollingInterval = config.pollingIntervalSeconds
             biometricLockEnabled = config.biometricLockEnabled
+            isConfigInitialized = true
         }
     }
 
@@ -441,7 +445,7 @@ fun CredentialsScreen(
                 }
 
                 Text(
-                    text = "Facing an issue or have a feature suggestion? Let us know so we can improve the app for you!",
+                    text = "Facing an issue or have a feature suggestion? Feedback is sent directly to developer email (01110708861.my@gmail.com) & Firebase cloud!",
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -460,35 +464,56 @@ fun CredentialsScreen(
                     )
                 )
 
-                Button(
-                    onClick = {
-                        val text = feedbackText.trim()
-                        if (text.isNotBlank()) {
-                            isSubmittingFeedback = true
-                            scope.launch {
-                                try {
-                                    val data = mapOf(
-                                        "content" to text,
-                                        "timestamp" to System.currentTimeMillis()
-                                    )
-                                    com.google.firebase.firestore.FirebaseFirestore.getInstance()
-                                        .collection("feedback")
-                                        .add(data)
-                                } catch (e: Exception) {}
-                                isSubmittingFeedback = false
-                                feedbackText = ""
-                                snackbarHostState.showSnackbar("Thank you! Your feedback has been received.")
-                            }
-                        }
-                    },
-                    enabled = feedbackText.trim().isNotBlank() && !isSubmittingFeedback,
-                    colors = ButtonDefaults.buttonColors(containerColor = ProPurplePrimary),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth()
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(imageVector = Icons.Default.Send, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(if (isSubmittingFeedback) "Submitting..." else "Submit Feedback", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Button(
+                        onClick = {
+                            val text = feedbackText.trim()
+                            if (text.isNotBlank()) {
+                                isSubmittingFeedback = true
+                                scope.launch {
+                                    try {
+                                        val data = mapOf(
+                                            "content" to text,
+                                            "timestamp" to System.currentTimeMillis()
+                                        )
+                                        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                                            .collection("feedback")
+                                            .add(data)
+                                    } catch (e: Exception) {}
+                                    isSubmittingFeedback = false
+                                    feedbackText = ""
+                                    snackbarHostState.showSnackbar("Thank you! Your feedback has been received.")
+                                }
+                            }
+                        },
+                        enabled = feedbackText.trim().isNotBlank() && !isSubmittingFeedback,
+                        colors = ButtonDefaults.buttonColors(containerColor = ProPurplePrimary),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(if (isSubmittingFeedback) "Submitting..." else "Submit Cloud", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    }
+
+                    Button(
+                        onClick = {
+                            try {
+                                val intent = Intent(Intent.ACTION_SENDTO).apply {
+                                    data = android.net.Uri.parse("mailto:01110708861.my@gmail.com")
+                                    putExtra(Intent.EXTRA_SUBJECT, "UTAR WiFi Helper App Feedback")
+                                    putExtra(Intent.EXTRA_TEXT, feedbackText.ifBlank { "App Feedback" })
+                                }
+                                context.startActivity(intent)
+                            } catch (e: Exception) {}
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = ProPurpleContainer, contentColor = ProPurpleOnContainer),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Send Email", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    }
                 }
             }
         }

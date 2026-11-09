@@ -68,6 +68,12 @@ class UtarRepository(
     }
 
     fun triggerWifiNudge(ssid: String) {
+        val current = getCurrentWifiSsid()
+        if (current != null && isSsidMatch(current, ssid)) {
+            // Already connected to target SSID stably; avoid tearing down connection
+            return
+        }
+
         val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager ?: return
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -82,7 +88,6 @@ class UtarRepository(
 
             val suggestion = builder.build()
             try {
-                wifiManager.removeNetworkSuggestions(listOf(suggestion))
                 val status = wifiManager.addNetworkSuggestions(listOf(suggestion))
                 addLogSync(LogStatus.INFO, "Network suggestion added for '$ssid' (status: $status)")
             } catch (e: Exception) {
@@ -327,10 +332,21 @@ class UtarRepository(
 
         val config = getConfig()
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val targetNetwork = getActiveWifiNetwork()
+        var targetNetwork = getActiveWifiNetwork()
 
         if (targetNetwork == null) {
-            return@coroutineScope LoginResult.Failure("Campus WiFi connection not found. Please connect to 'utarwifi' first.")
+            triggerWifiNudge(config.targetSsid)
+            addLog(LogStatus.INFO, "Auto-connecting to '${config.targetSsid}' network...")
+            var attempts = 0
+            while (targetNetwork == null && attempts < 8) {
+                delay(500)
+                attempts++
+                targetNetwork = getActiveWifiNetwork()
+            }
+        }
+
+        if (targetNetwork == null) {
+            return@coroutineScope LoginResult.Failure("Searching for '${config.targetSsid}'... Please ensure campus Wi-Fi is within range.")
         }
 
         if (config.username.isBlank() || config.password.isBlank()) {

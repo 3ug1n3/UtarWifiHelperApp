@@ -55,6 +55,7 @@ fun ConfessionCommentsSheet(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var commentText by remember { mutableStateOf("") }
+    val displayComments = remember(comments) { androidx.compose.runtime.mutableStateListOf<ConfessionComment>().apply { addAll(comments) } }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -108,7 +109,7 @@ fun ConfessionCommentsSheet(
             Spacer(modifier = Modifier.height(12.dp))
 
             // Comments List
-            if (comments.isEmpty()) {
+            if (displayComments.isEmpty()) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -129,7 +130,7 @@ fun ConfessionCommentsSheet(
                     contentPadding = PaddingValues(vertical = 4.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(comments, key = { it.id }) { comment ->
+                    items(displayComments, key = { it.id }) { comment ->
                         Surface(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
@@ -201,8 +202,17 @@ fun ConfessionCommentsSheet(
                 Spacer(modifier = Modifier.width(8.dp))
                 IconButton(
                     onClick = {
-                        if (commentText.trim().isNotBlank()) {
-                            onSubmitComment(commentText)
+                        val trimmed = commentText.trim()
+                        if (trimmed.isNotBlank()) {
+                            displayComments.add(
+                                ConfessionComment(
+                                    id = java.util.UUID.randomUUID().toString(),
+                                    confessionId = confession.id,
+                                    content = trimmed,
+                                    timestamp = System.currentTimeMillis()
+                                )
+                            )
+                            onSubmitComment(trimmed)
                             commentText = ""
                         }
                     },
