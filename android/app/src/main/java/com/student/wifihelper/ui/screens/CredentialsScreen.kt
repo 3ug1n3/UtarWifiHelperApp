@@ -1,6 +1,7 @@
 package com.student.wifihelper.ui.screens
 
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -499,14 +500,16 @@ fun CredentialsScreen(
 
                     Button(
                         onClick = {
+                            val text = feedbackText.trim()
                             try {
-                                val intent = Intent(Intent.ACTION_SENDTO).apply {
-                                    data = android.net.Uri.parse("mailto:01110708861.my@gmail.com")
-                                    putExtra(Intent.EXTRA_SUBJECT, "UTAR WiFi Helper App Feedback")
-                                    putExtra(Intent.EXTRA_TEXT, feedbackText.ifBlank { "App Feedback" })
-                                }
+                                val encodedSubject = android.net.Uri.encode("UTAR WiFi Helper App Feedback")
+                                val encodedBody = android.net.Uri.encode(if (text.isNotBlank()) text else "App Feedback")
+                                val mailUri = android.net.Uri.parse("mailto:01110708861.my@gmail.com?subject=$encodedSubject&body=$encodedBody")
+                                val intent = Intent(Intent.ACTION_SENDTO, mailUri)
                                 context.startActivity(intent)
-                            } catch (e: Exception) {}
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "No email app found on device", Toast.LENGTH_SHORT).show()
+                            }
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = ProPurpleContainer, contentColor = ProPurpleOnContainer),
                         shape = RoundedCornerShape(12.dp),

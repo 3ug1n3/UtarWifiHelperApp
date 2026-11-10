@@ -329,11 +329,12 @@ class FirebaseConfessionRepository : ConfessionRepository {
                         }
                     }.sortedBy { it.timestamp }
 
-                    if (list.isNotEmpty()) {
-                        saveLocalComments(confessionId, list)
-                        trySend(list)
+                    val mergedList = (list + loadLocalComments(confessionId)).distinctBy { it.id }.sortedBy { it.timestamp }
+                    if (mergedList.isNotEmpty()) {
+                        saveLocalComments(confessionId, mergedList)
+                        trySend(mergedList)
                     } else {
-                        trySend(loadLocalComments(confessionId))
+                        trySend(emptyList())
                     }
                 }
         } catch (e: Exception) {
