@@ -476,13 +476,16 @@ fun CredentialsScreen(
                                 isSubmittingFeedback = true
                                 scope.launch {
                                     try {
+                                        val docId = java.util.UUID.randomUUID().toString()
                                         val data = mapOf(
+                                            "id" to docId,
                                             "content" to text,
                                             "timestamp" to System.currentTimeMillis()
                                         )
                                         com.google.firebase.firestore.FirebaseFirestore.getInstance()
                                             .collection("feedback")
-                                            .add(data)
+                                            .document(docId)
+                                            .set(data)
                                     } catch (e: Exception) {}
                                     isSubmittingFeedback = false
                                     feedbackText = ""

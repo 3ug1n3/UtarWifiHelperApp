@@ -367,13 +367,26 @@ class FirebaseConfessionRepository : ConfessionRepository {
                 "timestamp" to System.currentTimeMillis()
             )
 
+            val parentRef = firestore.collection("confessions").document(confessionId)
+            val parentDoc = try { parentRef.get().await() } catch (e: Exception) { null }
+            if (parentDoc == null || !parentDoc.exists()) {
+                val parentData = mapOf(
+                    "id" to confessionId,
+                    "confessionNumber" to 1001,
+                    "content" to "UTAR Confession Post",
+                    "category" to ConfessionCategory.GENERAL.name,
+                    "timestamp" to System.currentTimeMillis(),
+                    "likesCount" to 0,
+                    "reportCount" to 0,
+                    "commentsCount" to 1
+                )
+                try { parentRef.set(parentData, com.google.firebase.firestore.SetOptions.merge()).await() } catch (e: Exception) {}
+            } else {
+                try { parentRef.update("commentsCount", FieldValue.increment(1)).await() } catch (e: Exception) {}
+            }
+
             firestore.collection("confessions").document(confessionId)
                 .collection("comments").document(commentId).set(commentData).await()
-
-            try {
-                firestore.collection("confessions").document(confessionId)
-                    .update("commentsCount", FieldValue.increment(1)).await()
-            } catch (e: Exception) {}
 
             Result.success(Unit)
         } catch (e: Exception) {
