@@ -77,13 +77,41 @@ fun CreateConfessionDialog(
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     var selectedCategory by remember { mutableStateOf(ConfessionCategory.CAMPUS) }
 
+    val context = androidx.compose.ui.platform.LocalContext.current
+
     // Native Android System Photo Picker Launcher
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
         if (uri != null) {
             selectedImageUri = uri
-            imageUrlText = uri.toString()
+            try {
+                val stream = context.contentResolver.openInputStream(uri)
+                if (stream != null) {
+                    val bytes = stream.readBytes()
+                    stream.close()
+                    val bitmap = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                    if (bitmap != null) {
+                        val maxDim = 800
+                        val width = bitmap.width
+                        val height = bitmap.height
+                        val scale = (maxDim.toFloat() / Math.max(width, height)).coerceAtMost(1.0f)
+                        val scaledWidth = (width * scale).toInt()
+                        val scaledHeight = (height * scale).toInt()
+                        val resizedBitmap = android.graphics.Bitmap.createScaledBitmap(bitmap, scaledWidth, scaledHeight, true)
+
+                        val outputStream = java.io.ByteArrayOutputStream()
+                        resizedBitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 78, outputStream)
+                        val compressedBytes = outputStream.toByteArray()
+                        val base64Str = android.util.Base64.encodeToString(compressedBytes, android.util.Base64.NO_WRAP)
+                        imageUrlText = "data:image/jpeg;base64,$base64Str"
+                    } else {
+                        imageUrlText = uri.toString()
+                    }
+                }
+            } catch (e: Exception) {
+                imageUrlText = uri.toString()
+            }
         }
     }
 
