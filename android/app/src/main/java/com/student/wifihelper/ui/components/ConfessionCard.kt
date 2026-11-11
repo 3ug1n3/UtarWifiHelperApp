@@ -11,6 +11,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,11 +36,14 @@ import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -57,6 +61,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.student.wifihelper.data.model.Confession
@@ -71,11 +78,12 @@ fun ConfessionCard(
     onBookmarkToggle: () -> Unit,
     onVotePoll: (optionIndex: Int) -> Unit = {},
     onOpenComments: () -> Unit,
-    onReport: () -> Unit,
+    onReport: (reason: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     var showReportDialog by remember { mutableStateOf(false) }
+    var isImageZoomed by remember { mutableStateOf(false) }
 
     val likeIconColor by animateColorAsState(
         targetValue = if (confession.isLikedByMe) Color(0xFFE91E63) else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -151,23 +159,41 @@ fun ConfessionCard(
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            // Optional Image Attachment Preview with Border Styling
+            // Optional Image Attachment Preview (Tap to Enlarge Full-Screen)
             if (!confession.imageUrl.isNullOrBlank()) {
                 Spacer(modifier = Modifier.height(10.dp))
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp),
+                        .height(200.dp)
+                        .clickable { isImageZoomed = true },
                     shape = RoundedCornerShape(14.dp),
                     border = BorderStroke(1.dp, ProPurplePrimary.copy(alpha = 0.25f)),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
-                    AsyncImage(
-                        model = confession.imageUrl,
-                        contentDescription = "Confession Attachment",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        AsyncImage(
+                            model = confession.imageUrl,
+                            contentDescription = "Confession Attachment",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        Surface(
+                            shape = CircleShape,
+                            color = Color.Black.copy(alpha = 0.5f),
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(8.dp)
+                        ) {
+                            Text(
+                                text = "🔍 Tap to enlarge",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
                 }
             }
 
@@ -361,29 +387,87 @@ fun ConfessionCard(
                 }
             }
         }
-    }
 
-    if (showReportDialog) {
-        AlertDialog(
-            onDismissRequest = { showReportDialog = false },
-            title = { Text("Report Confession") },
-            text = { Text("Are you sure you want to report post #${confession.confessionNumber} for inappropriate or abusive content?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showReportDialog = false
-                        onReport()
-                    }
+        // Full-Screen High-Resolution Photo Lightbox Dialog
+        if (isImageZoomed && !confession.imageUrl.isNullOrBlank()) {
+            Dialog(
+                onDismissRequest = { isImageZoomed = false },
+                properties = DialogProperties(usePlatformDefaultWidth = false)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.95f))
+                        .clickable { isImageZoomed = false },
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text("Report", color = MaterialTheme.colorScheme.error)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showReportDialog = false }) {
-                    Text("Cancel")
+                    AsyncImage(
+                        model = confession.imageUrl,
+                        contentDescription = "Enlarged Confession Photo",
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    )
+
+                    IconButton(
+                        onClick = { isImageZoomed = false },
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(24.dp)
+                            .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Close Photo",
+                            tint = Color.White
+                        )
+                    }
                 }
             }
-        )
+        }
+
+        if (showReportDialog) {
+            var reportReason by remember { mutableStateOf("") }
+            AlertDialog(
+                onDismissRequest = { showReportDialog = false },
+                title = { Text("Report Post #${confession.confessionNumber}") },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("Please describe why you are reporting this post:", fontSize = 13.sp)
+                        OutlinedTextField(
+                            value = reportReason,
+                            onValueChange = { reportReason = it },
+                            placeholder = { Text("e.g. Inappropriate content, harassment, fake news...", fontSize = 12.sp) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(90.dp),
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            val text = reportReason.trim()
+                            if (text.isNotBlank()) {
+                                showReportDialog = false
+                                onReport(text)
+                            }
+                        },
+                        enabled = reportReason.trim().isNotBlank(),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Submit Report")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showReportDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
     }
 }
 

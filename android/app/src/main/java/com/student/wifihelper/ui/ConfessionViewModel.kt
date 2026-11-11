@@ -227,6 +227,20 @@ class ConfessionViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
+    fun reportConfessionWithReason(confession: Confession, reason: String) {
+        val trimmed = reason.trim()
+        if (trimmed.isBlank()) return
+        viewModelScope.launch {
+            confessionRepository.reportConfessionWithReason(
+                confessionId = confession.id,
+                confessionNumber = confession.confessionNumber,
+                contentPreview = confession.content,
+                reason = trimmed
+            )
+            _toastMessage.value = "Report submitted. Thank you for keeping UTAR safe!"
+        }
+    }
+
     private fun containsProfanity(text: String): Boolean {
         val lower = text.lowercase()
         val blockedList = listOf("fuck", "bitch", "bastard", "idiot", "stupid", "lanjiao", "ccb", "pukimak", "sohai", "pokkai")

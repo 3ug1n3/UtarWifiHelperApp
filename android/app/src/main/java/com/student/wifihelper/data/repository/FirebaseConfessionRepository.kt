@@ -265,6 +265,33 @@ class FirebaseConfessionRepository : ConfessionRepository {
         }
     }
 
+    override suspend fun reportConfessionWithReason(
+        confessionId: String,
+        confessionNumber: Int,
+        contentPreview: String,
+        reason: String
+    ): Result<Unit> {
+        return try {
+            val reportId = UUID.randomUUID().toString()
+            val reportData = mapOf(
+                "id" to reportId,
+                "confessionId" to confessionId,
+                "confessionNumber" to confessionNumber,
+                "contentPreview" to contentPreview.take(150),
+                "reason" to reason.trim(),
+                "timestamp" to System.currentTimeMillis()
+            )
+
+            firestore.collection("reports").document(reportId).set(reportData).await()
+            try {
+                firestore.collection("confessions").document(confessionId).update("reportCount", FieldValue.increment(1)).await()
+            } catch (e: Exception) {}
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.success(Unit)
+        }
+    }
+
     private fun loadLocalComments(confessionId: String): List<ConfessionComment> {
         val jsonString = prefs.getString("key_comments_$confessionId", null) ?: return emptyList()
         return try {

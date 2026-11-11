@@ -13,6 +13,7 @@ interface ConfessionRepository {
     suspend fun toggleBookmark(confessionId: String): Result<Unit>
     suspend fun votePoll(confessionId: String, optionIndex: Int): Result<Unit>
     suspend fun reportConfession(confessionId: String): Result<Unit>
+    suspend fun reportConfessionWithReason(confessionId: String, confessionNumber: Int, contentPreview: String, reason: String): Result<Unit>
 
     fun getCommentsFlow(confessionId: String): Flow<List<ConfessionComment>>
     suspend fun addComment(confessionId: String, content: String): Result<Unit>

@@ -133,6 +133,15 @@ class LocalConfessionRepository(context: Context) : ConfessionRepository {
         return Result.success(Unit)
     }
 
+    override suspend fun reportConfessionWithReason(
+        confessionId: String,
+        confessionNumber: Int,
+        contentPreview: String,
+        reason: String
+    ): Result<Unit> {
+        return reportConfession(confessionId)
+    }
+
     private val commentsStateFlow = MutableStateFlow<Map<String, List<ConfessionComment>>>(emptyMap())
 
     init {

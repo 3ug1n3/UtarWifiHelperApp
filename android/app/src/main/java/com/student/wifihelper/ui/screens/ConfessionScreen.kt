@@ -420,7 +420,7 @@ fun ConfessionScreen(
                                     onBookmarkToggle = { viewModel.toggleBookmark(confession.id) },
                                     onVotePoll = { optionIndex -> viewModel.votePoll(confession.id, optionIndex) },
                                     onOpenComments = { viewModel.openCommentsSheet(confession) },
-                                    onReport = { viewModel.reportConfession(confession.id) }
+                                    onReport = { reason -> viewModel.reportConfessionWithReason(confession, reason) }
                                 )
                             }
                         }
