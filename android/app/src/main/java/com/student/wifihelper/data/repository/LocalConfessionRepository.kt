@@ -106,10 +106,25 @@ class LocalConfessionRepository(context: Context) : ConfessionRepository {
             if (item.id == confessionId && item.poll != null) {
                 val poll = item.poll
                 val newCounts = poll.voteCounts.toMutableList()
-                if (optionIndex in newCounts.indices) {
-                    newCounts[optionIndex] = newCounts[optionIndex] + 1
+                val currentVoted = poll.userVotedOptionIndex
+
+                val newVotedIndex = if (currentVoted == optionIndex) {
+                    // Tap voted option again -> remove vote
+                    if (optionIndex in newCounts.indices) {
+                        newCounts[optionIndex] = (newCounts[optionIndex] - 1).coerceAtLeast(0)
+                    }
+                    null
+                } else {
+                    // Switch or first vote
+                    if (currentVoted != null && currentVoted in newCounts.indices) {
+                        newCounts[currentVoted] = (newCounts[currentVoted] - 1).coerceAtLeast(0)
+                    }
+                    if (optionIndex in newCounts.indices) {
+                        newCounts[optionIndex] = newCounts[optionIndex] + 1
+                    }
+                    optionIndex
                 }
-                item.copy(poll = poll.copy(voteCounts = newCounts, userVotedOptionIndex = optionIndex))
+                item.copy(poll = poll.copy(voteCounts = newCounts, userVotedOptionIndex = newVotedIndex))
             } else {
                 item
             }

@@ -459,13 +459,15 @@ fun ConfessionScreen(
     }
 
     selectedConfessionForComments?.let { confession ->
-        ConfessionCommentsSheet(
+        com.student.wifihelper.ui.components.ConfessionDetailSheet(
             confession = confession,
             comments = commentsForSelectedConfession,
-            onDismiss = { viewModel.closeCommentsSheet() },
-            onSubmitComment = { commentContent ->
-                viewModel.submitComment(commentContent)
-            }
+            onLikeToggle = { viewModel.toggleLike(confession.id) },
+            onBookmarkToggle = { viewModel.toggleBookmark(confession.id) },
+            onVotePoll = { optionIndex -> viewModel.votePoll(confession.id, optionIndex) },
+            onSubmitComment = { commentContent -> viewModel.submitComment(commentContent) },
+            onReport = { reason -> viewModel.reportConfessionWithReason(confession, reason) },
+            onDismiss = { viewModel.closeCommentsSheet() }
         )
     }
 }

@@ -259,6 +259,9 @@ class FirebaseConfessionRepository : ConfessionRepository {
     }
 
     override suspend fun votePoll(confessionId: String, optionIndex: Int): Result<Unit> {
+        val currentVoted = prefs.getInt("key_voted_$confessionId", -1)
+        val isRemovingVote = (currentVoted == optionIndex)
+
         return try {
             val docRef = firestore.collection("confessions").document(confessionId)
             firestore.runTransaction { transaction ->
@@ -269,19 +272,33 @@ class FirebaseConfessionRepository : ConfessionRepository {
                     val options = (pollMap["options"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList()
                     val voteCounts = (pollMap["voteCounts"] as? List<*>)?.mapNotNull { (it as? Long)?.toInt() }?.toMutableList() ?: mutableListOf()
 
-                    if (optionIndex in voteCounts.indices) {
-                        voteCounts[optionIndex] = voteCounts[optionIndex] + 1
-                        val updatedPoll = mapOf(
-                            "question" to question,
-                            "options" to options,
-                            "voteCounts" to voteCounts
-                        )
-                        transaction.update(docRef, "poll", updatedPoll)
+                    if (isRemovingVote) {
+                        if (optionIndex in voteCounts.indices) {
+                            voteCounts[optionIndex] = (voteCounts[optionIndex] - 1).coerceAtLeast(0)
+                        }
+                    } else {
+                        if (currentVoted in voteCounts.indices) {
+                            voteCounts[currentVoted] = (voteCounts[currentVoted] - 1).coerceAtLeast(0)
+                        }
+                        if (optionIndex in voteCounts.indices) {
+                            voteCounts[optionIndex] = voteCounts[optionIndex] + 1
+                        }
                     }
+
+                    val updatedPoll = mapOf(
+                        "question" to question,
+                        "options" to options,
+                        "voteCounts" to voteCounts
+                    )
+                    transaction.update(docRef, "poll", updatedPoll)
                 }
             }.await()
 
-            prefs.edit().putInt("key_voted_$confessionId", optionIndex).apply()
+            if (isRemovingVote) {
+                prefs.edit().remove("key_voted_$confessionId").apply()
+            } else {
+                prefs.edit().putInt("key_voted_$confessionId", optionIndex).apply()
+            }
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
