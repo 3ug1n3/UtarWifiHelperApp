@@ -1,6 +1,7 @@
 package com.student.wifihelper.ui.screens
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
@@ -12,6 +13,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -189,157 +193,163 @@ fun ConfessionScreen(
                 }
             }
 
-            // Spring Bouncy Animated Horizontal Filter Row
+            // Instagram-Style Fluid Morphing Animated Filter Row
             var isCategoryExpanded by remember { mutableStateOf(false) }
             var isSortExpanded by remember { mutableStateOf(false) }
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .animateContentSize(animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow))
+                    .animateContentSize(animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow))
                     .padding(horizontal = 16.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Category Section
+                // Category Section with Fluid AnimatedContent Morphing
                 AnimatedVisibility(
                     visible = !isSortExpanded,
-                    enter = fadeIn(animationSpec = tween(200)) + expandHorizontally(
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow),
-                        expandFrom = Alignment.Start
-                    ) + scaleIn(initialScale = 0.85f, animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy)),
-                    exit = fadeOut(animationSpec = tween(150)) + shrinkHorizontally(
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium),
-                        shrinkTowards = Alignment.Start
-                    ) + scaleOut(targetScale = 0.85f),
+                    enter = fadeIn(tween(250)) + expandHorizontally(spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow)),
+                    exit = fadeOut(tween(180)) + shrinkHorizontally(spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium)),
                     modifier = if (isCategoryExpanded) Modifier.weight(1f) else Modifier
                 ) {
-                    if (isCategoryExpanded) {
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            items(ConfessionCategory.entries.toTypedArray()) { category ->
-                                val isSelected = selectedCategory == category
-                                FilterChip(
-                                    selected = isSelected,
-                                    onClick = {
-                                        viewModel.selectCategory(category)
-                                        isCategoryExpanded = false
-                                    },
-                                    label = {
-                                        Text(
-                                            text = "${category.iconEmoji} ${category.displayName}",
-                                            fontSize = 12.sp,
-                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                                        )
-                                    },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = ProPurpleContainer,
-                                        selectedLabelColor = ProPurpleOnContainer
-                                    ),
-                                    shape = CircleShape
-                                )
-                            }
-                        }
-                    } else {
-                        Surface(
-                            shape = CircleShape,
-                            color = ProPurpleContainer,
-                            modifier = Modifier.clickable {
-                                isCategoryExpanded = true
-                                isSortExpanded = false
-                            }
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                    AnimatedContent(
+                        targetState = isCategoryExpanded,
+                        transitionSpec = {
+                            (fadeIn(tween(280)) + slideInHorizontally { width -> width / 3 })
+                                .togetherWith(fadeOut(tween(180)) + slideOutHorizontally { width -> -width / 3 })
+                        },
+                        label = "categoryMorph"
+                    ) { expanded ->
+                        if (expanded) {
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text(
-                                    text = "${selectedCategory.iconEmoji} ${selectedCategory.displayName}",
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = ProPurpleOnContainer
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Icon(
-                                    imageVector = Icons.Default.ArrowDropDown,
-                                    contentDescription = "Expand Categories",
-                                    tint = ProPurpleOnContainer,
-                                    modifier = Modifier.size(18.dp)
-                                )
+                                items(ConfessionCategory.entries.toTypedArray()) { category ->
+                                    val isSelected = selectedCategory == category
+                                    FilterChip(
+                                        selected = isSelected,
+                                        onClick = {
+                                            viewModel.selectCategory(category)
+                                            isCategoryExpanded = false
+                                        },
+                                        label = {
+                                            Text(
+                                                text = "${category.iconEmoji} ${category.displayName}",
+                                                fontSize = 12.sp,
+                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                            )
+                                        },
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = ProPurpleContainer,
+                                            selectedLabelColor = ProPurpleOnContainer
+                                        ),
+                                        shape = CircleShape
+                                    )
+                                }
+                            }
+                        } else {
+                            Surface(
+                                shape = CircleShape,
+                                color = ProPurpleContainer,
+                                modifier = Modifier.clickable {
+                                    isCategoryExpanded = true
+                                    isSortExpanded = false
+                                }
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "${selectedCategory.iconEmoji} ${selectedCategory.displayName}",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = ProPurpleOnContainer
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Icon(
+                                        imageVector = Icons.Default.ArrowDropDown,
+                                        contentDescription = "Expand Categories",
+                                        tint = ProPurpleOnContainer,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
                             }
                         }
                     }
                 }
 
-                // Sort Section
+                // Sort Section with Fluid AnimatedContent Morphing
                 AnimatedVisibility(
                     visible = !isCategoryExpanded,
-                    enter = fadeIn(animationSpec = tween(200)) + expandHorizontally(
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow),
-                        expandFrom = Alignment.End
-                    ) + scaleIn(initialScale = 0.85f, animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy)),
-                    exit = fadeOut(animationSpec = tween(150)) + shrinkHorizontally(
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium),
-                        shrinkTowards = Alignment.End
-                    ) + scaleOut(targetScale = 0.85f),
+                    enter = fadeIn(tween(250)) + expandHorizontally(spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow)),
+                    exit = fadeOut(tween(180)) + shrinkHorizontally(spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium)),
                     modifier = if (isSortExpanded) Modifier.weight(1f) else Modifier
                 ) {
-                    if (isSortExpanded) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            ConfessionSortOrder.entries.forEach { sort ->
-                                val isSelected = sortOrder == sort
-                                FilterChip(
-                                    selected = isSelected,
-                                    onClick = {
-                                        viewModel.setSortOrder(sort)
-                                        isSortExpanded = false
-                                    },
-                                    label = {
-                                        Text(
-                                            text = "${sort.iconEmoji} ${sort.displayName}",
-                                            fontSize = 12.sp,
-                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                                        )
-                                    },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = ProPurplePrimary,
-                                        selectedLabelColor = Color.White
-                                    ),
-                                    shape = CircleShape
-                                )
-                            }
-                        }
-                    } else {
-                        Surface(
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            modifier = Modifier.clickable {
-                                isSortExpanded = true
-                                isCategoryExpanded = false
-                            }
-                        ) {
+                    AnimatedContent(
+                        targetState = isSortExpanded,
+                        transitionSpec = {
+                            (fadeIn(tween(280)) + slideInHorizontally { width -> width / 3 })
+                                .togetherWith(fadeOut(tween(180)) + slideOutHorizontally { width -> -width / 3 })
+                        },
+                        label = "sortMorph"
+                    ) { expanded ->
+                        if (expanded) {
                             Row(
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text(
-                                    text = "${sortOrder.iconEmoji} ${sortOrder.displayName}",
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Icon(
-                                    imageVector = Icons.Default.ArrowDropDown,
-                                    contentDescription = "Expand Sort",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(18.dp)
-                                )
+                                ConfessionSortOrder.entries.forEach { sort ->
+                                    val isSelected = sortOrder == sort
+                                    FilterChip(
+                                        selected = isSelected,
+                                        onClick = {
+                                            viewModel.setSortOrder(sort)
+                                            isSortExpanded = false
+                                        },
+                                        label = {
+                                            Text(
+                                                text = "${sort.iconEmoji} ${sort.displayName}",
+                                                fontSize = 12.sp,
+                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                            )
+                                        },
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = ProPurplePrimary,
+                                            selectedLabelColor = Color.White
+                                        ),
+                                        shape = CircleShape
+                                    )
+                                }
+                            }
+                        } else {
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                modifier = Modifier.clickable {
+                                    isSortExpanded = true
+                                    isCategoryExpanded = false
+                                }
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "${sortOrder.iconEmoji} ${sortOrder.displayName}",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Icon(
+                                        imageVector = Icons.Default.ArrowDropDown,
+                                        contentDescription = "Expand Sort",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
                             }
                         }
                     }
