@@ -96,12 +96,15 @@ fun GameCenterScreen(
         } catch (e: Exception) {}
     }
 
+    val pointsRepo = remember { UserPointsRepository(context) }
+
     Box(modifier = Modifier.fillMaxSize()) {
         if (activeGame != null) {
             when (activeGame) {
                 MiniGameType.ROUTER_THROW -> RouterThrowGame(
                     onGameEnd = { earned ->
                         onAddPoints(earned)
+                        pointsRepo.updateHighScore(MiniGameType.ROUTER_THROW, earned)
                         Toast.makeText(context, "🎉 +$earned Points Earned!", Toast.LENGTH_SHORT).show()
                     },
                     onClose = { activeGame = null }
@@ -109,6 +112,7 @@ fun GameCenterScreen(
                 MiniGameType.TURBO_RACER -> TurboRacerGame(
                     onGameEnd = { earned ->
                         onAddPoints(earned)
+                        pointsRepo.updateHighScore(MiniGameType.TURBO_RACER, earned)
                         Toast.makeText(context, "🎉 +$earned Points Earned!", Toast.LENGTH_SHORT).show()
                     },
                     onClose = { activeGame = null }
@@ -116,6 +120,7 @@ fun GameCenterScreen(
                 MiniGameType.BRICK_BREAKER -> BrickBreakerGame(
                     onGameEnd = { earned ->
                         onAddPoints(earned)
+                        pointsRepo.updateHighScore(MiniGameType.BRICK_BREAKER, earned)
                         Toast.makeText(context, "🎉 +$earned Points Earned!", Toast.LENGTH_SHORT).show()
                     },
                     onClose = { activeGame = null }
@@ -123,6 +128,7 @@ fun GameCenterScreen(
                 MiniGameType.FLAPPY_DUCK -> FlappyDuckGame(
                     onGameEnd = { earned ->
                         onAddPoints(earned)
+                        pointsRepo.updateHighScore(MiniGameType.FLAPPY_DUCK, earned)
                         Toast.makeText(context, "🎉 +$earned Points Earned!", Toast.LENGTH_SHORT).show()
                     },
                     onClose = { activeGame = null }
@@ -130,6 +136,7 @@ fun GameCenterScreen(
                 MiniGameType.TARGET_SHOOTER -> TargetShooterGame(
                     onGameEnd = { earned ->
                         onAddPoints(earned)
+                        pointsRepo.updateHighScore(MiniGameType.TARGET_SHOOTER, earned)
                         Toast.makeText(context, "🎉 +$earned Points Earned!", Toast.LENGTH_SHORT).show()
                     },
                     onClose = { activeGame = null }
@@ -137,6 +144,7 @@ fun GameCenterScreen(
                 MiniGameType.MEMORY_MATCH -> MemoryMatchGame(
                     onGameEnd = { earned ->
                         onAddPoints(earned)
+                        pointsRepo.updateHighScore(MiniGameType.MEMORY_MATCH, earned)
                         Toast.makeText(context, "🎉 +$earned Points Earned!", Toast.LENGTH_SHORT).show()
                     },
                     onClose = { activeGame = null }
@@ -372,6 +380,16 @@ fun GameCenterScreen(
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
 
+                                    val best1 = pointsRepo.getHighScore(game1)
+                                    if (best1 > 0) {
+                                        Text(
+                                            text = "🏆 Best: $best1 Pts",
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = ProPurplePrimary
+                                        )
+                                    }
+
                                     Spacer(modifier = Modifier.height(10.dp))
 
                                     Button(
@@ -437,6 +455,16 @@ fun GameCenterScreen(
                                             fontSize = 14.sp,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
+
+                                        val best2 = pointsRepo.getHighScore(game2)
+                                        if (best2 > 0) {
+                                            Text(
+                                                text = "🏆 Best: $best2 Pts",
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = ProPurplePrimary
+                                            )
+                                        }
 
                                         Spacer(modifier = Modifier.height(10.dp))
 

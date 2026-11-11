@@ -68,6 +68,15 @@ class UtarViewModel(application: Application) : AndroidViewModel(application) {
         checkOnboardingStatus()
         startDataUsageTracking()
         startAutoConnectTicker()
+        prefetchConfessions()
+    }
+
+    private fun prefetchConfessions() {
+        viewModelScope.launch {
+            try {
+                (getApplication<Application>() as UtarApplication).confessionRepository.getConfessionsFlow().collect {}
+            } catch (e: Exception) {}
+        }
     }
 
     private fun startAutoConnectTicker() {

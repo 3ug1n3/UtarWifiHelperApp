@@ -91,4 +91,17 @@ class UserPointsRepository(context: Context) {
             false
         }
     }
+
+    fun getHighScore(gameType: MiniGameType): Int {
+        return prefs.getInt("key_highscore_${gameType.name}", 0)
+    }
+
+    fun updateHighScore(gameType: MiniGameType, newScore: Int): Int {
+        val currentBest = getHighScore(gameType)
+        if (newScore > currentBest) {
+            prefs.edit().putInt("key_highscore_${gameType.name}", newScore).apply()
+            return newScore
+        }
+        return currentBest
+    }
 }
