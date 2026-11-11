@@ -432,7 +432,8 @@ fun CreateConfessionDialog(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Actions
+            val hasValidContent = textContent.trim().isNotBlank() || selectedImageUri != null || imageUrlText.isNotBlank() || (isPollEnabled && pollQuestion.isNotBlank())
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
@@ -447,8 +448,7 @@ fun CreateConfessionDialog(
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     onClick = {
-                        if (textContent.trim().isNotBlank()) {
-                            // Filter out any blank/empty options on submit!
+                        if (hasValidContent) {
                             val validPollOptions = pollOptions.map { it.trim() }.filter { it.isNotBlank() }
 
                             val pollObj = if (isPollEnabled && pollQuestion.isNotBlank() && validPollOptions.size >= 2) {
@@ -459,10 +459,14 @@ fun CreateConfessionDialog(
                                 )
                             } else null
 
-                            onSubmit(textContent, selectedCategory, imageUrlText.ifBlank { null }, pollObj)
+                            val finalContent = textContent.trim().ifBlank {
+                                if (selectedImageUri != null || imageUrlText.isNotBlank()) "📷 [Photo Attachment]" else "📊 [Student Poll]"
+                            }
+
+                            onSubmit(finalContent, selectedCategory, imageUrlText.ifBlank { null }, pollObj)
                         }
                     },
-                    enabled = textContent.trim().isNotBlank() && !isSubmitting,
+                    enabled = hasValidContent && !isSubmitting,
                     colors = ButtonDefaults.buttonColors(containerColor = ProPurplePrimary),
                     shape = RoundedCornerShape(12.dp)
                 ) {

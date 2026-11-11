@@ -153,9 +153,13 @@ class ConfessionViewModel(application: Application) : AndroidViewModel(applicati
         poll: ConfessionPoll? = null
     ) {
         val trimmed = content.trim()
-        if (trimmed.isBlank()) {
-            _toastMessage.value = "Confession content cannot be empty."
+        if (trimmed.isBlank() && imageUrl.isNullOrBlank() && poll == null) {
+            _toastMessage.value = "Confession content or photo attachment cannot be empty."
             return
+        }
+
+        val finalContent = trimmed.ifBlank {
+            if (!imageUrl.isNullOrBlank()) "📷 [Photo Attachment]" else "📊 [Student Poll]"
         }
 
         val now = System.currentTimeMillis()
@@ -166,14 +170,14 @@ class ConfessionViewModel(application: Application) : AndroidViewModel(applicati
             return
         }
 
-        if (containsProfanity(trimmed)) {
+        if (containsProfanity(finalContent)) {
             _toastMessage.value = "⚠️ Post contains inappropriate or abusive words. Please keep confessions respectful!"
             return
         }
 
         viewModelScope.launch {
             _isSubmitting.value = true
-            val result = confessionRepository.submitConfession(trimmed, category, imageUrl, poll)
+            val result = confessionRepository.submitConfession(finalContent, category, imageUrl, poll)
             _isSubmitting.value = false
             if (result.isSuccess) {
                 lastPostTimestamp = System.currentTimeMillis()
