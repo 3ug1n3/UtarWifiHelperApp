@@ -176,8 +176,8 @@ fun ConfessionCard(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     Box(modifier = Modifier.fillMaxSize()) {
-                        AsyncImage(
-                            model = confession.imageUrl,
+                        SmartConfessionImage(
+                            imageUrl = confession.imageUrl,
                             contentDescription = "Confession Attachment",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize()
@@ -405,8 +405,8 @@ fun ConfessionCard(
                         .clickable { isImageZoomed = false },
                     contentAlignment = Alignment.Center
                 ) {
-                    AsyncImage(
-                        model = confession.imageUrl,
+                    SmartConfessionImage(
+                        imageUrl = confession.imageUrl,
                         contentDescription = "Enlarged Confession Photo",
                         contentScale = ContentScale.Fit,
                         modifier = Modifier
@@ -486,5 +486,47 @@ private fun formatRelativeTime(timestamp: Long): String {
         minutes < 60 -> "${minutes}m ago"
         hours < 24 -> "${hours}h ago"
         else -> "${days}d ago"
+    }
+}
+
+@Composable
+fun SmartConfessionImage(
+    imageUrl: String,
+    contentDescription: String?,
+    contentScale: ContentScale,
+    modifier: Modifier = Modifier
+) {
+    if (imageUrl.contains(";base64,")) {
+        val bitmap = remember(imageUrl) {
+            try {
+                val base64Data = imageUrl.substringAfter(";base64,")
+                val bytes = android.util.Base64.decode(base64Data, android.util.Base64.DEFAULT)
+                android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap()
+            } catch (e: Exception) {
+                null
+            }
+        }
+        if (bitmap != null) {
+            androidx.compose.foundation.Image(
+                bitmap = bitmap,
+                contentDescription = contentDescription,
+                contentScale = contentScale,
+                modifier = modifier
+            )
+        } else {
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = contentDescription,
+                contentScale = contentScale,
+                modifier = modifier
+            )
+        }
+    } else {
+        AsyncImage(
+            model = imageUrl,
+            contentDescription = contentDescription,
+            contentScale = contentScale,
+            modifier = modifier
+        )
     }
 }

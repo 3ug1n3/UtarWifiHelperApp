@@ -498,6 +498,45 @@ fun ConfessionDetailSheet(
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
+
+    // Full-Screen Photo Lightbox Zoom Dialog inside Detail Sheet
+    if (isImageZoomed && !confession.imageUrl.isNullOrBlank()) {
+        androidx.compose.ui.window.Dialog(
+            onDismissRequest = { isImageZoomed = false },
+            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.95f))
+                    .clickable { isImageZoomed = false },
+                contentAlignment = Alignment.Center
+            ) {
+                SmartConfessionImage(
+                    imageUrl = confession.imageUrl,
+                    contentDescription = "Enlarged Confession Photo",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                )
+
+                IconButton(
+                    onClick = { isImageZoomed = false },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(24.dp)
+                        .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Close Photo",
+                        tint = Color.White
+                    )
+                }
+            }
+        }
+    }
 }
 
 private fun formatRelativeTime(timestamp: Long): String {
@@ -511,47 +550,5 @@ private fun formatRelativeTime(timestamp: Long): String {
         minutes < 60 -> "${minutes}m ago"
         hours < 24 -> "${hours}h ago"
         else -> "${days}d ago"
-    }
-}
-
-@Composable
-private fun SmartConfessionImage(
-    imageUrl: String,
-    contentDescription: String?,
-    contentScale: ContentScale,
-    modifier: Modifier = Modifier
-) {
-    if (imageUrl.contains(";base64,")) {
-        val bitmap = remember(imageUrl) {
-            try {
-                val base64Data = imageUrl.substringAfter(";base64,")
-                val bytes = android.util.Base64.decode(base64Data, android.util.Base64.DEFAULT)
-                android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap()
-            } catch (e: Exception) {
-                null
-            }
-        }
-        if (bitmap != null) {
-            androidx.compose.foundation.Image(
-                bitmap = bitmap,
-                contentDescription = contentDescription,
-                contentScale = contentScale,
-                modifier = modifier
-            )
-        } else {
-            AsyncImage(
-                model = imageUrl,
-                contentDescription = contentDescription,
-                contentScale = contentScale,
-                modifier = modifier
-            )
-        }
-    } else {
-        AsyncImage(
-            model = imageUrl,
-            contentDescription = contentDescription,
-            contentScale = contentScale,
-            modifier = modifier
-        )
     }
 }
