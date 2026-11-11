@@ -153,7 +153,7 @@ class FirebaseConfessionRepository : ConfessionRepository {
                 .get()
                 .await()
 
-            val lastNumber = snapshot.documents.firstOrNull()?.getLong("confessionNumber")?.toInt() ?: 1000
+            val lastNumber = snapshot.documents.firstOrNull()?.getLong("confessionNumber")?.toInt() ?: 0
             val nextNumber = lastNumber + 1
             val docId = UUID.randomUUID().toString()
 
@@ -372,7 +372,7 @@ class FirebaseConfessionRepository : ConfessionRepository {
             if (parentDoc == null || !parentDoc.exists()) {
                 val parentData = mapOf(
                     "id" to confessionId,
-                    "confessionNumber" to 1001,
+                    "confessionNumber" to 1,
                     "content" to "UTAR Confession Post",
                     "category" to ConfessionCategory.GENERAL.name,
                     "timestamp" to System.currentTimeMillis(),

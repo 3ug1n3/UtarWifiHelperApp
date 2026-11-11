@@ -51,7 +51,7 @@ class LocalConfessionRepository(context: Context) : ConfessionRepository {
         poll: ConfessionPoll?
     ): Result<Unit> {
         val currentList = _confessionsFlow.value.toMutableList()
-        val nextNumber = (currentList.maxOfOrNull { it.confessionNumber } ?: 1000) + 1
+        val nextNumber = (currentList.maxOfOrNull { it.confessionNumber } ?: 0) + 1
 
         val newConfession = Confession(
             id = UUID.randomUUID().toString(),
