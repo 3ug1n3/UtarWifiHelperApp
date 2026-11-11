@@ -356,12 +356,16 @@ class UtarRepository(
         addLog(LogStatus.INFO, "Login initiated across campus endpoints...", currentSsid)
 
         try {
-            // Bind process to WiFi network cleanly without triggering system UI loops
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                connectivityManager.bindProcessToNetwork(targetNetwork)
-            } else {
-                @Suppress("DEPRECATION")
-                ConnectivityManager.setProcessDefaultNetwork(targetNetwork)
+            // Bind process to WiFi network cleanly with fallback protection against EPERM
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    connectivityManager.bindProcessToNetwork(targetNetwork)
+                } else {
+                    @Suppress("DEPRECATION")
+                    ConnectivityManager.setProcessDefaultNetwork(targetNetwork)
+                }
+            } catch (e: Exception) {
+                addLog(LogStatus.INFO, "Standard network binding fallback active")
             }
 
             // High-frequency gateway IP resolution

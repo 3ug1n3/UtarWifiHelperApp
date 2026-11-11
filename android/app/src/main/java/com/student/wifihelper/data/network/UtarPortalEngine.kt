@@ -31,10 +31,12 @@ class UtarPortalEngine {
             .followSslRedirects(false)
             .apply {
                 if (network != null) {
-                    socketFactory(network.socketFactory)
-                    dns(object : Dns {
-                        override fun lookup(hostname: String) = network.getAllByName(hostname).toList()
-                    })
+                    try {
+                        socketFactory(network.socketFactory)
+                        dns(object : Dns {
+                            override fun lookup(hostname: String) = try { network.getAllByName(hostname).toList() } catch (e: Exception) { Dns.SYSTEM.lookup(hostname) }
+                        })
+                    } catch (e: Exception) {}
                 }
             }
             .build()
@@ -49,10 +51,12 @@ class UtarPortalEngine {
             .followSslRedirects(true)
             .apply {
                 if (network != null) {
-                    socketFactory(network.socketFactory)
-                    dns(object : Dns {
-                        override fun lookup(hostname: String) = network.getAllByName(hostname).toList()
-                    })
+                    try {
+                        socketFactory(network.socketFactory)
+                        dns(object : Dns {
+                            override fun lookup(hostname: String) = try { network.getAllByName(hostname).toList() } catch (e: Exception) { Dns.SYSTEM.lookup(hostname) }
+                        })
+                    } catch (e: Exception) {}
                 }
             }
             .build()
@@ -65,10 +69,12 @@ class UtarPortalEngine {
             .writeTimeout(10, TimeUnit.SECONDS)
             .apply {
                 if (network != null) {
-                    socketFactory(network.socketFactory)
-                    dns(object : Dns {
-                        override fun lookup(hostname: String) = network.getAllByName(hostname).toList()
-                    })
+                    try {
+                        socketFactory(network.socketFactory)
+                        dns(object : Dns {
+                            override fun lookup(hostname: String) = try { network.getAllByName(hostname).toList() } catch (e: Exception) { Dns.SYSTEM.lookup(hostname) }
+                        })
+                    } catch (e: Exception) {}
                 }
             }
             .build()
