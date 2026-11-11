@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Feedback
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Lock
@@ -174,6 +175,13 @@ fun CredentialsScreen(
                     label = { Text("Login ID / Student ID") },
                     leadingIcon = {
                         Icon(Icons.Default.Person, contentDescription = null, tint = ProPurplePrimary)
+                    },
+                    trailingIcon = {
+                        if (usernameDraft.isNotEmpty()) {
+                            IconButton(onClick = { onUsernameChange("") }) {
+                                Icon(Icons.Default.Clear, contentDescription = "Clear", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
                     },
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),

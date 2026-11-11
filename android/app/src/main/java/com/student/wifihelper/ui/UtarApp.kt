@@ -228,7 +228,24 @@ fun UtarApp(
                             }
                             selectedTab = tab 
                         },
-                        icon = { Icon(tab.icon, contentDescription = tab.title) },
+                        icon = {
+                            if (tab == AppTab.GAMES && userPoints > 0) {
+                                androidx.compose.material3.BadgedBox(
+                                    badge = {
+                                        androidx.compose.material3.Badge(
+                                            containerColor = ProPurplePrimary,
+                                            contentColor = Color.White
+                                        ) {
+                                            Text("$userPoints", fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                ) {
+                                    Icon(tab.icon, contentDescription = tab.title)
+                                }
+                            } else {
+                                Icon(tab.icon, contentDescription = tab.title)
+                            }
+                        },
                         label = { Text(tab.title, fontSize = 11.sp, fontWeight = if (selectedTab == tab) FontWeight.Bold else FontWeight.Medium) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = ProPurpleOnContainer,
