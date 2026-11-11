@@ -192,73 +192,136 @@ fun TurboRacerGame(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Canvas Highway
+            // 3D Perspective Canvas Highway
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
             ) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
-                    val roadWidth = size.width
-                    val laneWidth = roadWidth / 3f
-                    val playerY = size.height * 0.78f
+                    val w = size.width
+                    val h = size.height
+                    val horizonY = h * 0.15f
+                    val horizonW = w * 0.25f
 
-                    // Road background
-                    drawRect(color = Color(0xFF2B2930), size = size)
+                    // Draw Cyber Sky Gradient
+                    drawRect(
+                        brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                            colors = listOf(Color(0xFF0F0B1E), Color(0xFF1D1635))
+                        ),
+                        size = Size(w, horizonY)
+                    )
 
-                    // Dashed Lane Lines
-                    val dashHeight = 30f
-                    val dashGap = 30f
-                    var y = -60f + roadOffsetY
-                    while (y < size.height) {
-                        drawLine(
-                            color = Color.Yellow.copy(alpha = 0.8f),
-                            start = Offset(laneWidth, y),
-                            end = Offset(laneWidth, y + dashHeight),
-                            strokeWidth = 6f
+                    // Draw 3D Perspective Road
+                    val roadPath = androidx.compose.ui.graphics.Path().apply {
+                        moveTo((w - horizonW) / 2f, horizonY)
+                        lineTo((w + horizonW) / 2f, horizonY)
+                        lineTo(w, h)
+                        lineTo(0f, h)
+                        close()
+                    }
+                    drawPath(
+                        path = roadPath,
+                        brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                            colors = listOf(Color(0xFF1E1A2B), Color(0xFF2D2640))
                         )
-                        drawLine(
-                            color = Color.Yellow.copy(alpha = 0.8f),
-                            start = Offset(laneWidth * 2f, y),
-                            end = Offset(laneWidth * 2f, y + dashHeight),
-                            strokeWidth = 6f
-                        )
-                        y += dashHeight + dashGap
+                    )
+
+                    // Draw 3D Perspective Lane Dividers
+                    val dashCount = 8
+                    for (i in 0 until dashCount) {
+                        val progress = ((i.toFloat() / dashCount) + (roadOffsetY / 60f)) % 1.0f
+                        val y = horizonY + progress * (h - horizonY)
+                        val scale = 0.25f + progress * 0.75f
+                        val currentW = horizonW + (w - horizonW) * progress
+
+                        val l1X = (w - currentW) / 2f + (currentW / 3f)
+                        val l2X = (w - currentW) / 2f + (currentW * 2f / 3f)
+
+                        drawLine(color = Color.Yellow.copy(alpha = progress.coerceIn(0.2f, 0.9f)), start = Offset(l1X, y), end = Offset(l1X, y + 15f * scale), strokeWidth = 5f * scale)
+                        drawLine(color = Color.Yellow.copy(alpha = progress.coerceIn(0.2f, 0.9f)), start = Offset(l2X, y), end = Offset(l2X, y + 15f * scale), strokeWidth = 5f * scale)
                     }
 
-                    // Draw Obstacles & Data Orbs with Exact Relative Y Coordinate
+                    // Draw 3D Obstacles & Data Orbs with Perspective Depth Scale
                     obstacles.forEach { obs ->
-                        val obsX = (obs.lane * laneWidth) + (laneWidth / 2f)
-                        val obsY = obs.yPosProgress * size.height
+                        val p = obs.yPosProgress.coerceIn(0f, 1f)
+                        val currentW = horizonW + (w - horizonW) * p
+                        val scale = 0.3f + p * 0.7f
+                        val obsY = horizonY + p * (h - horizonY)
+                        val laneCenterX = (w - currentW) / 2f + (currentW / 6f) + (obs.lane * (currentW / 3f))
+
                         if (obs.isDataPacket) {
                             drawCircle(
                                 color = StatusGreen,
-                                radius = 24f,
-                                center = Offset(obsX, obsY)
+                                radius = 22f * scale,
+                                center = Offset(laneCenterX, obsY)
+                            )
+                            drawCircle(
+                                color = Color.White,
+                                radius = 10f * scale,
+                                center = Offset(laneCenterX, obsY)
                             )
                         } else {
+                            // 3D Shadow
+                            drawOval(
+                                color = Color.Black.copy(alpha = 0.4f),
+                                topLeft = Offset(laneCenterX - 30f * scale, obsY + 20f * scale),
+                                size = Size(60f * scale, 20f * scale)
+                            )
+                            // 3D Block Chassis
                             drawRoundRect(
                                 color = Color(0xFFE91E63),
-                                topLeft = Offset(obsX - 32f, obsY - 45f),
-                                size = Size(64f, 90f),
-                                cornerRadius = CornerRadius(14f)
+                                topLeft = Offset(laneCenterX - 32f * scale, obsY - 40f * scale),
+                                size = Size(64f * scale, 80f * scale),
+                                cornerRadius = CornerRadius(12f * scale)
                             )
                         }
                     }
 
-                    // Draw Player Car with Animated Smooth Lane Slide
+                    // Draw Player 3D Cyber Car
                     if (!isGameOver) {
-                        val smoothCarX = (animatedLaneOffset * laneWidth) + (laneWidth / 2f)
+                        val playerY = h * 0.82f
+                        val currentW = horizonW + (w - horizonW) * 0.82f
+                        val carX = (w - currentW) / 2f + (currentW / 6f) + (animatedLaneOffset * (currentW / 3f))
+
+                        // Headlight Beam Effect
+                        val beamPath = androidx.compose.ui.graphics.Path().apply {
+                            moveTo(carX - 25f, playerY - 30f)
+                            lineTo(carX - 50f, playerY - 180f)
+                            lineTo(carX + 50f, playerY - 180f)
+                            lineTo(carX + 25f, playerY - 30f)
+                            close()
+                        }
+                        drawPath(
+                            path = beamPath,
+                            brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                                colors = listOf(Color.Cyan.copy(alpha = 0.35f), Color.Transparent)
+                            )
+                        )
+
+                        // 3D Car Shadow
+                        drawOval(
+                            color = Color.Black.copy(alpha = 0.5f),
+                            topLeft = Offset(carX - 40f, playerY + 30f),
+                            size = Size(80f, 25f)
+                        )
+
+                        // 3D Metallic Car Body
                         drawRoundRect(
-                            color = ProPurplePrimary,
-                            topLeft = Offset(smoothCarX - 35f, playerY - 45f),
-                            size = Size(70f, 90f),
+                            brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                                colors = listOf(ProPurplePrimary, Color(0xFF4A148C))
+                            ),
+                            topLeft = Offset(carX - 38f, playerY - 45f),
+                            size = Size(76f, 90f),
                             cornerRadius = CornerRadius(16f)
                         )
-                        drawCircle(
-                            color = Color.White,
-                            radius = 12f,
-                            center = Offset(smoothCarX, playerY - 20f)
+
+                        // Windshield
+                        drawRoundRect(
+                            color = Color.Cyan,
+                            topLeft = Offset(carX - 24f, playerY - 25f),
+                            size = Size(48f, 28f),
+                            cornerRadius = CornerRadius(8f)
                         )
                     }
                 }
