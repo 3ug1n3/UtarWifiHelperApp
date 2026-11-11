@@ -233,17 +233,32 @@ fun BrickBreakerGame(
                     }
             ) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
-                    // Draw Bricks
+                    // Draw 3D Beveled Glass Bricks
                     bricks.filter { !it.isDestroyed }.forEach { brick ->
+                        // 3D Drop Shadow
+                        drawRoundRect(
+                            color = Color.Black.copy(alpha = 0.4f),
+                            topLeft = Offset(brick.x + 6f, brick.y + 6f),
+                            size = Size(brick.width, brick.height),
+                            cornerRadius = CornerRadius(8f)
+                        )
+                        // 3D Bevel Body
                         drawRoundRect(
                             color = brick.color,
                             topLeft = Offset(brick.x, brick.y),
                             size = Size(brick.width, brick.height),
                             cornerRadius = CornerRadius(8f)
                         )
+                        // 3D Bevel Top Highlight Line
+                        drawRoundRect(
+                            color = Color.White.copy(alpha = 0.4f),
+                            topLeft = Offset(brick.x + 4f, brick.y + 4f),
+                            size = Size(brick.width - 8f, 6f),
+                            cornerRadius = CornerRadius(4f)
+                        )
                     }
 
-                    // Draw Ball Trail
+                    // Draw Glowing Ball Trail
                     ballTrail.forEachIndexed { index, pos ->
                         val alpha = (1.0f - (index * 0.15f)).coerceIn(0.1f, 0.8f)
                         drawCircle(
@@ -253,9 +268,17 @@ fun BrickBreakerGame(
                         )
                     }
 
-                    // Draw Paddle
+                    // Draw 3D Metallic Paddle
                     drawRoundRect(
-                        color = ProPurplePrimary,
+                        color = Color.Black.copy(alpha = 0.4f),
+                        topLeft = Offset(paddleX - (paddleWidth / 2f) + 6f, 966f),
+                        size = Size(paddleWidth, 24f),
+                        cornerRadius = CornerRadius(12f)
+                    )
+                    drawRoundRect(
+                        brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
+                            colors = listOf(ProPurplePrimary, Color(0xFFD81B60), ProPurplePrimary)
+                        ),
                         topLeft = Offset(paddleX - (paddleWidth / 2f), 960f),
                         size = Size(paddleWidth, 24f),
                         cornerRadius = CornerRadius(12f)

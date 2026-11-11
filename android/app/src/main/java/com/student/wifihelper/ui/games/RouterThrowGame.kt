@@ -299,22 +299,41 @@ fun RouterThrowGame(
                     val centerY = size.height * 0.35f
                     val wheelRadius = 80.dp.toPx()
 
-                    // Draw Spinning Target Wheel
+                    // Draw 3D Extruded Cylinder Target Wheel
+                    // 3D Drop Shadow
+                    drawCircle(
+                        color = Color.Black.copy(alpha = 0.5f),
+                        radius = wheelRadius + 12.dp.toPx(),
+                        center = Offset(centerX + 12.dp.toPx(), centerY + 12.dp.toPx())
+                    )
+
+                    // 3D Extruded Cylinder Depth Side
+                    drawCircle(
+                        color = Color(0xFF38006B),
+                        radius = wheelRadius + 4.dp.toPx(),
+                        center = Offset(centerX + 6.dp.toPx(), centerY + 6.dp.toPx())
+                    )
+
+                    // Draw Spinning Metallic Target Front
                     rotate(degrees = wheelAngle, pivot = Offset(centerX, centerY)) {
                         drawCircle(
-                            color = ProPurplePrimary,
+                            brush = androidx.compose.ui.graphics.Brush.radialGradient(
+                                colors = listOf(ProPurplePrimary, Color(0xFF4A148C), Color(0xFF1A0033)),
+                                center = Offset(centerX - 20f, centerY - 20f),
+                                radius = wheelRadius
+                            ),
                             radius = wheelRadius,
                             center = Offset(centerX, centerY)
                         )
                         drawCircle(
-                            color = Color.White,
-                            radius = wheelRadius - 10.dp.toPx(),
+                            color = Color.Cyan.copy(alpha = 0.8f),
+                            radius = wheelRadius - 8.dp.toPx(),
                             center = Offset(centerX, centerY),
-                            style = Stroke(width = 4.dp.toPx())
+                            style = Stroke(width = 3.dp.toPx())
                         )
                         drawCircle(
                             color = Color.White,
-                            radius = 16.dp.toPx(),
+                            radius = 18.dp.toPx(),
                             center = Offset(centerX, centerY)
                         )
 
