@@ -127,16 +127,50 @@ class FirebaseConfessionRepository : ConfessionRepository {
 
     private suspend fun uploadImageToStorage(imageUriString: String): String? {
         return try {
-            if (imageUriString.startsWith("http://") || imageUriString.startsWith("https://")) {
+            if (imageUriString.startsWith("http://") || imageUriString.startsWith("https://") || imageUriString.startsWith("data:image")) {
                 return imageUriString
             }
             val uri = android.net.Uri.parse(imageUriString)
-            val storageRef = Firebase.storage.reference.child("confessions/${UUID.randomUUID()}.jpg")
-            val uploadTask = storageRef.putFile(uri).await()
-            val downloadUrl = uploadTask.storage.downloadUrl.await().toString()
-            downloadUrl
+            val context = UtarApplication.instance.applicationContext
+
+            // 1. Try Firebase Storage upload first
+            try {
+                val storageRef = Firebase.storage.reference.child("confessions/${UUID.randomUUID()}.jpg")
+                val stream = context.contentResolver.openInputStream(uri)
+                if (stream != null) {
+                    val bytes = stream.readBytes()
+                    stream.close()
+                    val uploadTask = storageRef.putBytes(bytes).await()
+                    val downloadUrl = uploadTask.storage.downloadUrl.await().toString()
+                    return downloadUrl
+                }
+            } catch (e: Exception) {}
+
+            // 2. Universal Base64 Data URL fallback so photo works 100% on ALL devices
+            val stream = context.contentResolver.openInputStream(uri)
+            if (stream != null) {
+                val bytes = stream.readBytes()
+                stream.close()
+                val bitmap = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                if (bitmap != null) {
+                    val maxDim = 800
+                    val width = bitmap.width
+                    val height = bitmap.height
+                    val scale = (maxDim.toFloat() / Math.max(width, height)).coerceAtMost(1.0f)
+                    val scaledWidth = (width * scale).toInt()
+                    val scaledHeight = (height * scale).toInt()
+                    val resizedBitmap = android.graphics.Bitmap.createScaledBitmap(bitmap, scaledWidth, scaledHeight, true)
+
+                    val outputStream = java.io.ByteArrayOutputStream()
+                    resizedBitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 78, outputStream)
+                    val compressedBytes = outputStream.toByteArray()
+                    val base64Str = android.util.Base64.encodeToString(compressedBytes, android.util.Base64.NO_WRAP)
+                    return "data:image/jpeg;base64,$base64Str"
+                }
+            }
+            null
         } catch (e: Exception) {
-            imageUriString
+            null
         }
     }
 
