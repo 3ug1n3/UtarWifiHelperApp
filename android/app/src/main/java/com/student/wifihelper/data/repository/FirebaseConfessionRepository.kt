@@ -24,7 +24,9 @@ class FirebaseConfessionRepository : ConfessionRepository {
         UtarApplication.instance.getSharedPreferences("bookmarked_confessions_prefs", Context.MODE_PRIVATE)
     }
 
-    private val bookmarkedIdsFlow = kotlinx.coroutines.flow.MutableStateFlow<Set<String>>(getBookmarkedIds())
+    private val bookmarkedIdsFlow by lazy {
+        kotlinx.coroutines.flow.MutableStateFlow<Set<String>>(getBookmarkedIds())
+    }
 
     private fun getBookmarkedIds(): HashSet<String> {
         val set = prefs.getStringSet("key_bookmarks", null)

@@ -10,12 +10,19 @@ class UtarApplication : Application() {
     lateinit var repository: UtarRepository
         private set
 
-    lateinit var confessionRepository: com.student.wifihelper.data.repository.ConfessionRepository
+    var confessionRepository: com.student.wifihelper.data.repository.ConfessionRepository = com.student.wifihelper.data.repository.LocalConfessionRepository(this)
         private set
 
     override fun onCreate() {
         super.onCreate()
         instance = this
+
+        // Global Uncaught Exception Handler to prevent app startup crashes
+        val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            android.util.Log.e("UtarApplication", "Prevented startup crash on thread ${thread.name}", throwable)
+            defaultHandler?.uncaughtException(thread, throwable)
+        }
 
         val database = AppDatabase.getDatabase(this)
         repository = UtarRepository(
@@ -26,19 +33,16 @@ class UtarApplication : Application() {
         )
 
         try {
-            if (com.google.firebase.FirebaseApp.getApps(this).isNotEmpty()) {
-                confessionRepository = com.student.wifihelper.data.repository.FirebaseConfessionRepository()
-            } else {
-                confessionRepository = com.student.wifihelper.data.repository.LocalConfessionRepository(this)
-            }
-        } catch (e: Exception) {
+            com.google.firebase.FirebaseApp.initializeApp(this)
+            confessionRepository = com.student.wifihelper.data.repository.FirebaseConfessionRepository()
+        } catch (e: Throwable) {
             confessionRepository = com.student.wifihelper.data.repository.LocalConfessionRepository(this)
         }
 
         // Initialize Google Mobile Ads (AdMob)
         try {
             com.google.android.gms.ads.MobileAds.initialize(this) {}
-        } catch (e: Exception) {}
+        } catch (e: Throwable) {}
     }
 
     companion object {
