@@ -1,13 +1,43 @@
 package com.student.wifihelper
 
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.student.wifihelper.ui.UtarApp
+import com.student.wifihelper.ui.theme.ProPurpleContainer
+import com.student.wifihelper.ui.theme.ProPurplePrimary
 import com.student.wifihelper.ui.theme.UtarWifiTheme
 
 class MainActivity : androidx.fragment.app.FragmentActivity() {
@@ -20,9 +50,90 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    UtarApp()
+                    AppWithSplashScreen()
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun AppWithSplashScreen() {
+    var isSplashFinished by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(1200)
+        isSplashFinished = true
+    }
+
+    Crossfade(
+        targetState = isSplashFinished,
+        animationSpec = tween(durationMillis = 600),
+        label = "splashCrossfade"
+    ) { finished ->
+        if (finished) {
+            UtarApp()
+        } else {
+            AnimatedSplashScreen()
+        }
+    }
+}
+
+@Composable
+fun AnimatedSplashScreen() {
+    val scale = remember { androidx.compose.animation.core.Animatable(0.4f) }
+
+    LaunchedEffect(Unit) {
+        scale.animateTo(
+            targetValue = 1.05f,
+            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)
+        )
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF141218)),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Surface(
+                shape = CircleShape,
+                color = ProPurpleContainer,
+                modifier = Modifier
+                    .size(96.dp)
+                    .graphicsLayer(scaleX = scale.value, scaleY = scale.value)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Default.Wifi,
+                        contentDescription = "App Icon",
+                        tint = ProPurplePrimary,
+                        modifier = Modifier.size(52.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(
+                text = "U不停歇WIFI助手",
+                fontWeight = FontWeight.Bold,
+                fontSize = 22.sp,
+                color = Color.White
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Text(
+                text = "UTAR Campus Wi-Fi Auto-Login & Helper",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = ProPurplePrimary
+            )
         }
     }
 }

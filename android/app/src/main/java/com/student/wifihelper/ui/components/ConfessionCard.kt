@@ -22,7 +22,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.delay
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import com.student.wifihelper.ui.theme.StatusGreen
@@ -289,17 +292,34 @@ fun ConfessionCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // Like Button
-                    IconButton(
-                        onClick = onLikeToggle,
-                        modifier = Modifier.size(36.dp)
-                    ) {
-                        Icon(
-                            imageVector = if (confession.isLikedByMe) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                            contentDescription = "Like",
-                            tint = likeIconColor,
-                            modifier = Modifier.scale(likeScale)
-                        )
+                    // Like Button with Instagram-Style Floating Heart Burst
+                    var showHeartBurst by remember { mutableStateOf(false) }
+                    LaunchedEffect(confession.isLikedByMe) {
+                        if (confession.isLikedByMe) {
+                            showHeartBurst = true
+                            delay(600)
+                            showHeartBurst = false
+                        }
+                    }
+
+                    Box(contentAlignment = Alignment.Center) {
+                        if (showHeartBurst) {
+                            Text("💖", fontSize = 12.sp, modifier = Modifier.offset(y = (-18).dp))
+                            Text("💖", fontSize = 10.sp, modifier = Modifier.offset(x = (-12).dp, y = (-24).dp))
+                            Text("💖", fontSize = 10.sp, modifier = Modifier.offset(x = 12.dp, y = (-24).dp))
+                        }
+
+                        IconButton(
+                            onClick = onLikeToggle,
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (confession.isLikedByMe) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                                contentDescription = "Like",
+                                tint = likeIconColor,
+                                modifier = Modifier.scale(likeScale)
+                            )
+                        }
                     }
                     Text(
                         text = "${confession.likesCount}",
