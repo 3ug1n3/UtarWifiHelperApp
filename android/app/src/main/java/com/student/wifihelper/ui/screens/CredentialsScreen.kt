@@ -149,7 +149,8 @@ fun CredentialsScreen(
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(20.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, ProOutline),
+            border = androidx.compose.foundation.BorderStroke(1.dp, ProPurplePrimary.copy(alpha = 0.25f)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
