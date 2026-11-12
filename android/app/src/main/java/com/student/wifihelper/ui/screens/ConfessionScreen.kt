@@ -16,11 +16,13 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -127,6 +129,9 @@ fun ConfessionScreen(
     val isFabExpanded by remember {
         derivedStateOf { listState.firstVisibleItemIndex == 0 }
     }
+    val isTopBarVisible by remember {
+        derivedStateOf { listState.firstVisibleItemIndex == 0 || listState.firstVisibleItemScrollOffset < 80 }
+    }
 
     Scaffold(
         floatingActionButton = {
@@ -158,13 +163,20 @@ fun ConfessionScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Search Bar with View Mode Toggle Button
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically
+            // Auto-Collapsing Top Search Bar & Filter Row on Scroll Down
+            AnimatedVisibility(
+                visible = isTopBarVisible || searchQuery.isNotEmpty(),
+                enter = fadeIn(tween(250)) + expandVertically(spring(dampingRatio = Spring.DampingRatioLowBouncy)),
+                exit = fadeOut(tween(200)) + shrinkVertically(spring(dampingRatio = Spring.DampingRatioNoBouncy))
             ) {
+                Column {
+                    // Search Bar with View Mode Toggle Button
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { viewModel.updateSearchQuery(it) },
@@ -375,6 +387,7 @@ fun ConfessionScreen(
                     }
                 }
             }
+        }
 
             Spacer(modifier = Modifier.height(4.dp))
 
@@ -502,6 +515,7 @@ fun ConfessionScreen(
             onDismiss = { viewModel.closeCommentsSheet() }
         )
     }
+}
 }
 
 @Composable
