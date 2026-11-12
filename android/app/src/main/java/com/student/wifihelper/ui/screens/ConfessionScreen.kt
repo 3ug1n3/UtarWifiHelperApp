@@ -28,6 +28,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -109,9 +111,15 @@ fun ConfessionScreen(
         }
     }
 
+    val listState = rememberLazyListState()
+    val isFabExpanded by remember {
+        derivedStateOf { listState.firstVisibleItemIndex == 0 }
+    }
+
     Scaffold(
         floatingActionButton = {
             ExtendedFloatingActionButton(
+                expanded = isFabExpanded,
                 onClick = { viewModel.openCreateDialog() },
                 icon = {
                     Icon(
@@ -407,6 +415,7 @@ fun ConfessionScreen(
                 when (viewMode) {
                     ConfessionViewMode.LIST -> {
                         LazyColumn(
+                            state = listState,
                             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 88.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {

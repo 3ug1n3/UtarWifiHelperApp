@@ -140,19 +140,26 @@ fun ConfessionCard(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Category Badge (Guaranteed single line on all screen sizes)
+                // 3D Gradient Glass Category Badge
                 Surface(
                     shape = CircleShape,
-                    color = ProPurpleContainer,
-                    contentColor = ProPurpleOnContainer
+                    color = Color.Transparent,
+                    border = BorderStroke(1.dp, ProPurplePrimary.copy(alpha = 0.3f)),
+                    modifier = Modifier.background(
+                        brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
+                            colors = listOf(ProPurpleContainer, ProPurplePrimary.copy(alpha = 0.15f))
+                        ),
+                        shape = CircleShape
+                    )
                 ) {
                     Text(
                         text = "${confession.category.iconEmoji} ${confession.category.displayName}",
                         fontSize = 11.sp,
-                        fontWeight = FontWeight.SemiBold,
+                        fontWeight = FontWeight.Bold,
+                        color = ProPurpleOnContainer,
                         maxLines = 1,
                         softWrap = false,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                        modifier = Modifier.padding(horizontal = 11.dp, vertical = 5.dp)
                     )
                 }
             }

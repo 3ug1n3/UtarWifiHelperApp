@@ -48,10 +48,12 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -340,9 +342,31 @@ private fun StatusHeroCard(
         )
     }
 
+    val infiniteTransition = androidx.compose.animation.core.rememberInfiniteTransition(label = "pulse")
+    val pulseScale by infiniteTransition.animateFloat(
+        initialValue = 1.0f,
+        targetValue = 2.2f,
+        animationSpec = androidx.compose.animation.core.infiniteRepeatable(
+            animation = androidx.compose.animation.core.tween(1200),
+            repeatMode = androidx.compose.animation.core.RepeatMode.Restart
+        ),
+        label = "pulseScale"
+    )
+    val pulseAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.8f,
+        targetValue = 0.0f,
+        animationSpec = androidx.compose.animation.core.infiniteRepeatable(
+            animation = androidx.compose.animation.core.tween(1200),
+            repeatMode = androidx.compose.animation.core.RepeatMode.Restart
+        ),
+        label = "pulseAlpha"
+    )
+
     Card(
         colors = CardDefaults.cardColors(containerColor = ProPurpleContainer),
         shape = RoundedCornerShape(24.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, ProPurplePrimary.copy(alpha = 0.35f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
@@ -371,26 +395,38 @@ private fun StatusHeroCard(
                     )
                 }
 
-                Box(
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.6f))
-                        .padding(horizontal = 10.dp, vertical = 4.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(contentAlignment = Alignment.Center) {
+                    if (networkState is NetworkState.Checking || isLoading) {
                         Box(
                             modifier = Modifier
-                                .size(8.dp)
+                                .size(36.dp)
+                                .scale(pulseScale)
                                 .clip(CircleShape)
-                                .background(if (networkState is NetworkState.InternetActive) StatusGreen else StatusYellow)
+                                .background(ProPurplePrimary.copy(alpha = pulseAlpha))
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = statusTag,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = ProPurpleOnContainer
-                        )
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.6f))
+                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .clip(CircleShape)
+                                    .background(if (networkState is NetworkState.InternetActive) StatusGreen else StatusYellow)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = statusTag,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = ProPurpleOnContainer
+                            )
+                        }
                     }
                 }
             }

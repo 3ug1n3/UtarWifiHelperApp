@@ -104,32 +104,52 @@ fun GameCenterScreen(
                 MiniGameType.ROUTER_THROW -> RouterThrowGame(
                     onGameEnd = { earned ->
                         onAddPoints(earned)
-                        pointsRepo.updateHighScore(MiniGameType.ROUTER_THROW, earned)
-                        Toast.makeText(context, "🎉 +$earned Points Earned!", Toast.LENGTH_SHORT).show()
+                        val oldBest = pointsRepo.getHighScore(MiniGameType.ROUTER_THROW)
+                        val newBest = pointsRepo.updateHighScore(MiniGameType.ROUTER_THROW, earned)
+                        if (earned > oldBest && oldBest > 0) {
+                            Toast.makeText(context, "🏆 NEW RECORD! $newBest Pts!", Toast.LENGTH_LONG).show()
+                        } else {
+                            Toast.makeText(context, "🎉 +$earned Points Earned!", Toast.LENGTH_SHORT).show()
+                        }
                     },
                     onClose = { activeGame = null }
                 )
                 MiniGameType.TURBO_RACER -> TurboRacerGame(
                     onGameEnd = { earned ->
                         onAddPoints(earned)
-                        pointsRepo.updateHighScore(MiniGameType.TURBO_RACER, earned)
-                        Toast.makeText(context, "🎉 +$earned Points Earned!", Toast.LENGTH_SHORT).show()
+                        val oldBest = pointsRepo.getHighScore(MiniGameType.TURBO_RACER)
+                        val newBest = pointsRepo.updateHighScore(MiniGameType.TURBO_RACER, earned)
+                        if (earned > oldBest && oldBest > 0) {
+                            Toast.makeText(context, "🏆 NEW RECORD! $newBest Pts!", Toast.LENGTH_LONG).show()
+                        } else {
+                            Toast.makeText(context, "🎉 +$earned Points Earned!", Toast.LENGTH_SHORT).show()
+                        }
                     },
                     onClose = { activeGame = null }
                 )
                 MiniGameType.BRICK_BREAKER -> BrickBreakerGame(
                     onGameEnd = { earned ->
                         onAddPoints(earned)
-                        pointsRepo.updateHighScore(MiniGameType.BRICK_BREAKER, earned)
-                        Toast.makeText(context, "🎉 +$earned Points Earned!", Toast.LENGTH_SHORT).show()
+                        val oldBest = pointsRepo.getHighScore(MiniGameType.BRICK_BREAKER)
+                        val newBest = pointsRepo.updateHighScore(MiniGameType.BRICK_BREAKER, earned)
+                        if (earned > oldBest && oldBest > 0) {
+                            Toast.makeText(context, "🏆 NEW RECORD! $newBest Pts!", Toast.LENGTH_LONG).show()
+                        } else {
+                            Toast.makeText(context, "🎉 +$earned Points Earned!", Toast.LENGTH_SHORT).show()
+                        }
                     },
                     onClose = { activeGame = null }
                 )
                 MiniGameType.FLAPPY_DUCK -> FlappyDuckGame(
                     onGameEnd = { earned ->
                         onAddPoints(earned)
-                        pointsRepo.updateHighScore(MiniGameType.FLAPPY_DUCK, earned)
-                        Toast.makeText(context, "🎉 +$earned Points Earned!", Toast.LENGTH_SHORT).show()
+                        val oldBest = pointsRepo.getHighScore(MiniGameType.FLAPPY_DUCK)
+                        val newBest = pointsRepo.updateHighScore(MiniGameType.FLAPPY_DUCK, earned)
+                        if (earned > oldBest && oldBest > 0) {
+                            Toast.makeText(context, "🏆 NEW RECORD! $newBest Pts!", Toast.LENGTH_LONG).show()
+                        } else {
+                            Toast.makeText(context, "🎉 +$earned Points Earned!", Toast.LENGTH_SHORT).show()
+                        }
                     },
                     onClose = { activeGame = null }
                 )
