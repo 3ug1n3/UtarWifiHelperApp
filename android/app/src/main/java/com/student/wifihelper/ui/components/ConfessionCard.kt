@@ -578,10 +578,12 @@ fun AnimatedHeartBurst(
 
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         particles.forEach { p ->
-            Text(
-                text = if (p.size > 17f) "💖" else "✨",
-                fontSize = p.size.sp,
+            Icon(
+                imageVector = Icons.Filled.Favorite,
+                contentDescription = null,
+                tint = Color(0xFFE91E63).copy(alpha = p.alpha),
                 modifier = Modifier
+                    .size((p.size * 0.8f).dp)
                     .offset(x = p.x.dp, y = p.y.dp)
                     .graphicsLayer(alpha = p.alpha, scaleX = p.scale, scaleY = p.scale)
             )

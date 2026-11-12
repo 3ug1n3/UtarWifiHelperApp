@@ -97,15 +97,18 @@ fun ConfessionDetailSheet(
     var commentText by remember { mutableStateOf("") }
     var isImageZoomed by remember { mutableStateOf(false) }
 
+    var localIsLiked by remember(confession.isLikedByMe) { mutableStateOf(confession.isLikedByMe) }
+    var localLikesCount by remember(confession.likesCount) { androidx.compose.runtime.mutableIntStateOf(confession.likesCount) }
+
     val displayComments = remember(comments) { androidx.compose.runtime.mutableStateListOf<ConfessionComment>().apply { addAll(comments) } }
 
     val likeIconColor by animateColorAsState(
-        targetValue = if (confession.isLikedByMe) Color(0xFFE91E63) else MaterialTheme.colorScheme.onSurfaceVariant,
+        targetValue = if (localIsLiked) Color(0xFFE91E63) else MaterialTheme.colorScheme.onSurfaceVariant,
         label = "likeColor"
     )
 
     val likeScale by animateFloatAsState(
-        targetValue = if (confession.isLikedByMe) 1.2f else 1.0f,
+        targetValue = if (localIsLiked) 1.2f else 1.0f,
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
         label = "likeScale"
     )
@@ -294,19 +297,31 @@ fun ConfessionDetailSheet(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = onLikeToggle, modifier = Modifier.size(36.dp)) {
+                        IconButton(
+                            onClick = {
+                                if (localIsLiked) {
+                                    localIsLiked = false
+                                    localLikesCount = (localLikesCount - 1).coerceAtLeast(0)
+                                } else {
+                                    localIsLiked = true
+                                    localLikesCount++
+                                }
+                                onLikeToggle()
+                            },
+                            modifier = Modifier.size(36.dp)
+                        ) {
                             Icon(
-                                imageVector = if (confession.isLikedByMe) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                                imageVector = if (localIsLiked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                                 contentDescription = "Like",
                                 tint = likeIconColor,
                                 modifier = Modifier.scale(likeScale)
                             )
                         }
                         Text(
-                            text = "${confession.likesCount}",
+                            text = "$localLikesCount",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (confession.isLikedByMe) Color(0xFFE91E63) else MaterialTheme.colorScheme.onSurfaceVariant
+                            color = if (localIsLiked) Color(0xFFE91E63) else MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
                         Spacer(modifier = Modifier.width(16.dp))
@@ -319,7 +334,7 @@ fun ConfessionDetailSheet(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "${confession.commentsCount}",
+                            text = "${displayComments.size}",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
