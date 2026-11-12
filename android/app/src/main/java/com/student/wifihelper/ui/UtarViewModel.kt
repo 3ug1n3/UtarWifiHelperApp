@@ -86,12 +86,17 @@ class UtarViewModel(application: Application) : AndroidViewModel(application) {
                 val current = configState.value ?: continue
                 if (current.autoLoginEnabled && current.autoConnectRemainingSeconds > 0L) {
                     val newSeconds = (current.autoConnectRemainingSeconds - 1L).coerceAtLeast(0L)
-                    val newEnabled = if (newSeconds == 0L) false else current.autoLoginEnabled
+                    val newEnabled = newSeconds > 0L
                     val updated = current.copy(
                         autoConnectRemainingSeconds = newSeconds,
                         autoLoginEnabled = newEnabled
                     )
                     repository.saveConfig(updated)
+                    if (newSeconds == 0L) {
+                        repository.removeWifiNudge(updated.targetSsid)
+                        UtarWifiService.stopService(getApplication())
+                        _toastMessage.value = "🔒 Auto-Connect time expired! Turn ON when ready after earning points."
+                    }
                 }
             }
         }
@@ -240,12 +245,10 @@ class UtarViewModel(application: Application) : AndroidViewModel(application) {
             val current = configState.value ?: UserConfig()
             val newSeconds = current.autoConnectRemainingSeconds + (hours * 3600L)
             val updated = current.copy(
-                autoLoginEnabled = true,
                 autoConnectRemainingSeconds = newSeconds
             )
             repository.saveConfig(updated)
-            repository.triggerWifiNudge(updated.targetSsid)
-            UtarWifiService.startService(getApplication())
+            _toastMessage.value = "🎉 Added ${hours}h to Auto-Connect balance! Turn ON Auto-Login when ready."
         }
     }
 
