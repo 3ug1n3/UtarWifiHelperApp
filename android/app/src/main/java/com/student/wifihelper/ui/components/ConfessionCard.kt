@@ -56,6 +56,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -304,9 +305,7 @@ fun ConfessionCard(
 
                     Box(contentAlignment = Alignment.Center) {
                         if (showHeartBurst) {
-                            Text("💖", fontSize = 12.sp, modifier = Modifier.offset(y = (-18).dp))
-                            Text("💖", fontSize = 10.sp, modifier = Modifier.offset(x = (-12).dp, y = (-24).dp))
-                            Text("💖", fontSize = 10.sp, modifier = Modifier.offset(x = 12.dp, y = (-24).dp))
+                            AnimatedHeartBurst()
                         }
 
                         IconButton(
@@ -528,6 +527,65 @@ fun SmartConfessionImage(
             contentScale = contentScale,
             modifier = modifier
         )
+    }
+}
+
+data class HeartParticleData(
+    var x: Float,
+    var y: Float,
+    val vx: Float,
+    val vy: Float,
+    val size: Float,
+    var alpha: Float = 1.0f,
+    var scale: Float = 0.5f
+)
+
+@Composable
+fun AnimatedHeartBurst(
+    modifier: Modifier = Modifier
+) {
+    val particles = remember {
+        mutableStateListOf<HeartParticleData>().apply {
+            for (i in 0..7) {
+                val angle = kotlin.random.Random.nextDouble(0.0, 2 * Math.PI)
+                val speed = kotlin.random.Random.nextFloat() * 12f + 4f
+                add(
+                    HeartParticleData(
+                        x = 0f,
+                        y = 0f,
+                        vx = (Math.cos(angle) * speed).toFloat(),
+                        vy = (Math.sin(angle) * speed - 6f).toFloat(),
+                        size = kotlin.random.Random.nextFloat() * 10f + 12f
+                    )
+                )
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        var frames = 0
+        while (frames < 28) {
+            frames++
+            particles.forEach { p ->
+                p.x += p.vx
+                p.y += p.vy
+                p.alpha = (1.0f - frames / 28f).coerceIn(0f, 1f)
+                p.scale = (frames / 8f).coerceAtMost(1.4f)
+            }
+            delay(16)
+        }
+    }
+
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        particles.forEach { p ->
+            Text(
+                text = if (p.size > 17f) "💖" else "✨",
+                fontSize = p.size.sp,
+                modifier = Modifier
+                    .offset(x = p.x.dp, y = p.y.dp)
+                    .graphicsLayer(alpha = p.alpha, scaleX = p.scale, scaleY = p.scale)
+            )
+        }
     }
 }
 

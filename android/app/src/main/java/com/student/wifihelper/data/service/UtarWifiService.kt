@@ -177,56 +177,48 @@ class UtarWifiService : Service() {
     private suspend fun performCheckAndAutoLogin(triggerReason: String) {
         val config = repository.getConfig()
         val currentSsid = repository.getCurrentWifiSsid()
-        
-        if (currentSsid == null && config.autoLoginEnabled) {
+
+        if (!config.autoLoginEnabled || config.autoConnectRemainingSeconds <= 0L) {
+            return
+        }
+
+        if (currentSsid == null) {
             repository.triggerWifiNudge(config.targetSsid)
+            val loginResult = repository.performLogin(currentSsid = config.targetSsid)
+            if (loginResult is LoginResult.Success) {
+                repository.addLog(LogStatus.SUCCESS, "Auto-connected & Logged in to ${config.targetSsid}")
+            }
+            return
         }
 
         val networkState = repository.evaluateNetworkStatus(currentSsid)
 
         when (networkState) {
             is NetworkState.InternetActive -> {
-                updateNotification("Active - Connected to Internet")
+                // Internet is active
             }
             is NetworkState.CaptivePortalDetected -> {
-                if (config.autoLoginEnabled) {
-                    updateNotification("Logging in to Campus WiFi...")
-                    val result = repository.performLogin(
-                        providedPortalUrl = networkState.portalUrl,
-                        currentSsid = currentSsid
-                    )
-                    when (result) {
-                        is LoginResult.Success -> updateNotification("Logged in to Campus WiFi")
-                        is LoginResult.Failure -> updateNotification("Login Failed: ${result.errorMessage}")
-                    }
-                } else {
-                    updateNotification("⚠️ Campus Wi-Fi Connected — Tap 'Login' in app to connect.")
+                val result = repository.performLogin(
+                    providedPortalUrl = networkState.portalUrl,
+                    currentSsid = currentSsid
+                )
+                if (result is LoginResult.Success) {
+                    repository.addLog(LogStatus.SUCCESS, "Logged in to Campus WiFi")
                 }
             }
             is NetworkState.ConnectedNotTarget -> {
                 val current = networkState.currentSsid.lowercase()
-                if ((current.contains("utar") || current.contains("campus")) && config.autoLoginEnabled) {
-                    updateNotification("Campus WiFi detected - Logging in...")
-                    val result = repository.performLogin(currentSsid = networkState.currentSsid)
-                    if (result is LoginResult.Success) updateNotification("Logged in to Campus WiFi")
-                } else {
-                    updateNotification("Connected to ${networkState.currentSsid} (Target: ${networkState.targetSsid})")
+                if (current.contains("utar") || current.contains("campus")) {
+                    repository.performLogin(currentSsid = networkState.currentSsid)
                 }
             }
             is NetworkState.WifiConnected -> {
-                val ssid = networkState.ssid ?: ""
-                if ((ssid.isEmpty() || ssid.contains("utarwifi", ignoreCase = true) || ssid.contains("campus", ignoreCase = true)) && config.autoLoginEnabled) {
-                    updateNotification("Campus WiFi detected - Logging in...")
-                    val result = repository.performLogin(currentSsid = ssid)
-                    if (result is LoginResult.Success) updateNotification("Logged in to Campus WiFi")
-                } else {
-                    updateNotification("WiFi Connected — Tap 'Login' in app to connect.")
-                }
+                repository.performLogin(currentSsid = networkState.ssid)
             }
-            is NetworkState.Disconnected, is NetworkState.WifiDisabled, is NetworkState.NotConnected -> {
-                updateNotification("Waiting for WiFi connection...")
+            else -> {
+                repository.triggerWifiNudge(config.targetSsid)
+                repository.performLogin(currentSsid = config.targetSsid)
             }
-            else -> {}
         }
     }
 
