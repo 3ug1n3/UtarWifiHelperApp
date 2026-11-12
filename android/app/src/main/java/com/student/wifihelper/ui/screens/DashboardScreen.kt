@@ -111,8 +111,9 @@ fun DashboardScreen(
         // Middle Ad Banner placed between Wi-Fi Status card and Login Button
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            shape = RoundedCornerShape(16.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, ProOutline),
+            shape = RoundedCornerShape(20.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, ProPurplePrimary.copy(alpha = 0.25f)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             Box(
@@ -238,7 +239,8 @@ fun DashboardScreen(
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(20.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, ProOutline),
+            border = androidx.compose.foundation.BorderStroke(1.dp, ProPurplePrimary.copy(alpha = 0.25f)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
@@ -270,9 +272,10 @@ fun DashboardScreen(
 
         // Bottom AdMob Banner Container
         Card(
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-            shape = RoundedCornerShape(16.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, ProOutline),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            shape = RoundedCornerShape(20.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, ProPurplePrimary.copy(alpha = 0.25f)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             Box(

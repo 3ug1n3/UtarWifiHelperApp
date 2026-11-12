@@ -353,8 +353,10 @@ fun GameCenterScreen(
                             // Left Game Card
                             val game1 = games[i]
                             Card(
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                                shape = RoundedCornerShape(18.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                                shape = RoundedCornerShape(20.dp),
+                                border = BorderStroke(1.dp, ProPurplePrimary.copy(alpha = 0.25f)),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                                 modifier = Modifier
                                     .weight(1f)
                                     .clickable { activeGame = game1 }
@@ -429,8 +431,10 @@ fun GameCenterScreen(
                             if (i + 1 < games.size) {
                                 val game2 = games[i + 1]
                                 Card(
-                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                                    shape = RoundedCornerShape(18.dp),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                                    shape = RoundedCornerShape(20.dp),
+                                    border = BorderStroke(1.dp, ProPurplePrimary.copy(alpha = 0.25f)),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                                     modifier = Modifier
                                         .weight(1f)
                                         .clickable { activeGame = game2 }
