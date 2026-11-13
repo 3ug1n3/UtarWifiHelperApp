@@ -129,9 +129,6 @@ fun ConfessionScreen(
     val isFabExpanded by remember {
         derivedStateOf { listState.firstVisibleItemIndex == 0 }
     }
-    val isTopBarVisible by remember {
-        derivedStateOf { listState.firstVisibleItemIndex == 0 || listState.firstVisibleItemScrollOffset < 80 }
-    }
 
     Scaffold(
         floatingActionButton = {
@@ -163,20 +160,13 @@ fun ConfessionScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Auto-Collapsing Top Search Bar & Filter Row on Scroll Down
-            AnimatedVisibility(
-                visible = isTopBarVisible || searchQuery.isNotEmpty(),
-                enter = fadeIn(tween(250)) + expandVertically(spring(dampingRatio = Spring.DampingRatioLowBouncy)),
-                exit = fadeOut(tween(200)) + shrinkVertically(spring(dampingRatio = Spring.DampingRatioNoBouncy))
+            // Search Bar with View Mode Toggle Button
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    // Search Bar with View Mode Toggle Button
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { viewModel.updateSearchQuery(it) },
@@ -387,7 +377,6 @@ fun ConfessionScreen(
                     }
                 }
             }
-        }
 
             Spacer(modifier = Modifier.height(4.dp))
 
@@ -515,7 +504,6 @@ fun ConfessionScreen(
             onDismiss = { viewModel.closeCommentsSheet() }
         )
     }
-}
 }
 
 @Composable

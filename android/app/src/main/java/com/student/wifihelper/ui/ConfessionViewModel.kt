@@ -247,7 +247,12 @@ class ConfessionViewModel(application: Application) : AndroidViewModel(applicati
 
     private fun containsProfanity(text: String): Boolean {
         val lower = text.lowercase()
-        val blockedList = listOf("fuck", "bitch", "bastard", "idiot", "stupid", "lanjiao", "ccb", "pukimak", "sohai", "pokkai")
-        return blockedList.any { lower.contains(it) }
+        val cleanLower = lower.replace(Regex("[^a-z0-9\\u4e00-\\u9fa5]"), "")
+        val blockedList = listOf(
+            "fuck", "bitch", "bastard", "idiot", "stupid", "lanjiao", "ccb",
+            "pukimak", "sohai", "pokkai", "puki", "babi", "kaninna",
+            "傻逼", "草泥马", "操你", "幹你", "屌", "笨蛋", "咸湿", "二货", "賤人"
+        )
+        return blockedList.any { lower.contains(it) || cleanLower.contains(it) }
     }
 }
