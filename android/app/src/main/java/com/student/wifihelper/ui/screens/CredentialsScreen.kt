@@ -516,13 +516,13 @@ fun CredentialsScreen(
                     )
                 }
 
-                // 2. Official Faculty & Block Selection (Expands if Yes or selected)
-                if (canConnectWifi == true || selectedFacultyBlock.isNotEmpty()) {
+                // 2. Official Faculty & Block Selection (Expands when No or Yes is selected)
+                if (canConnectWifi != null || selectedFacultyBlock.isNotEmpty()) {
                     Text(
-                        text = "Which UTAR Faculty / Block are you at?",
+                        text = if (canConnectWifi == false) "Which UTAR Faculty / Block has NO Wi-Fi connection?" else "Which UTAR Faculty / Block are you at?",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = if (canConnectWifi == false) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                     )
 
                     FlowRow(
