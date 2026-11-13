@@ -84,7 +84,11 @@ fun UtarApp(
     val context = androidx.compose.ui.platform.LocalContext.current
     val pointsRepo = remember { com.student.wifihelper.ui.games.UserPointsRepository(context) }
     var selectedTab by remember { mutableStateOf(AppTab.DASHBOARD) }
-    var userPoints by remember { mutableIntStateOf(pointsRepo.getPoints()) }
+    var userPoints by remember {
+        mutableIntStateOf(
+            try { pointsRepo.getPoints() } catch (e: Exception) { 150 }
+        )
+    }
 
     val config by viewModel.configState.collectAsState()
     val logs by viewModel.logsState.collectAsState()

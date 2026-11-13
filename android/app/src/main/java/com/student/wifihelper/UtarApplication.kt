@@ -17,11 +17,9 @@ class UtarApplication : Application() {
         super.onCreate()
         instance = this
 
-        // Global Uncaught Exception Handler to prevent app startup crashes
-        val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
+        // Global Exception Safeguard to keep app process alive and stable
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
-            android.util.Log.e("UtarApplication", "Prevented startup crash on thread ${thread.name}", throwable)
-            defaultHandler?.uncaughtException(thread, throwable)
+            android.util.Log.e("UtarApplication", "Safely caught background exception on thread ${thread.name}: ${throwable.message}", throwable)
         }
 
         val database = AppDatabase.getDatabase(this)
