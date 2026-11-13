@@ -248,6 +248,11 @@ fun ConfessionCard(
 
                         val totalVotes = poll.voteCounts.sum().coerceAtLeast(1)
 
+                        var isVotingLocked by remember { mutableStateOf(false) }
+                        LaunchedEffect(poll.voteCounts, poll.userVotedOptionIndex) {
+                            isVotingLocked = false
+                        }
+
                         poll.options.forEachIndexed { index, optionText ->
                             val votes = poll.voteCounts.getOrElse(index) { 0 }
                             val percentageFloat = votes.toFloat() / totalVotes.toFloat()
@@ -259,7 +264,12 @@ fun ConfessionCard(
                                     .fillMaxWidth()
                                     .padding(vertical = 4.dp)
                                     .clip(RoundedCornerShape(8.dp))
-                                    .clickable { onVotePoll(index) }
+                                    .clickable {
+                                        if (!isVotingLocked) {
+                                            isVotingLocked = true
+                                            onVotePoll(index)
+                                        }
+                                    }
                             ) {
                                 Row(
                                     modifier = Modifier

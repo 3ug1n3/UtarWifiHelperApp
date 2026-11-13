@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 enum class ConfessionSortOrder(val displayName: String, val iconEmoji: String) {
@@ -217,10 +218,19 @@ class ConfessionViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
+    private val votingInProgressSet = mutableSetOf<String>()
+
     fun votePoll(confessionId: String, optionIndex: Int) {
+        if (votingInProgressSet.contains(confessionId)) return
+        votingInProgressSet.add(confessionId)
+
         viewModelScope.launch {
-            confessionRepository.votePoll(confessionId, optionIndex)
-            _toastMessage.value = "Vote recorded!"
+            try {
+                confessionRepository.votePoll(confessionId, optionIndex)
+            } finally {
+                delay(800)
+                votingInProgressSet.remove(confessionId)
+            }
         }
     }
 
