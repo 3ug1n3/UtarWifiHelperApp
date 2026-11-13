@@ -481,7 +481,9 @@ fun ConfessionDetailSheet(
                     modifier = Modifier.weight(1f),
                     placeholder = { Text("Write an anonymous reply...", fontSize = 13.sp) },
                     shape = RoundedCornerShape(20.dp),
-                    singleLine = true,
+                    minLines = 1,
+                    maxLines = 3,
+                    singleLine = false,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = ProPurplePrimary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)

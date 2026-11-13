@@ -633,8 +633,10 @@ fun ZoomablePhotoLightbox(
                             offsetX += pan.x
                             offsetY += pan.y
                         } else {
-                            offsetX = 0f
-                            offsetY = 0f
+                            offsetY += pan.y
+                            if (offsetY > 220f) {
+                                onDismiss()
+                            }
                         }
                     }
                 },
