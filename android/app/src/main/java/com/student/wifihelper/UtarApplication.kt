@@ -10,7 +10,7 @@ class UtarApplication : Application() {
     lateinit var repository: UtarRepository
         private set
 
-    var confessionRepository: com.student.wifihelper.data.repository.ConfessionRepository = com.student.wifihelper.data.repository.LocalConfessionRepository(this)
+    lateinit var confessionRepository: com.student.wifihelper.data.repository.ConfessionRepository
         private set
 
     override fun onCreate() {
@@ -21,6 +21,9 @@ class UtarApplication : Application() {
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
             android.util.Log.e("UtarApplication", "Safely caught background exception on thread ${thread.name}: ${throwable.message}", throwable)
         }
+
+        // Initialize local fallback repository safely AFTER super.onCreate()
+        confessionRepository = com.student.wifihelper.data.repository.LocalConfessionRepository(this)
 
         val database = AppDatabase.getDatabase(this)
         repository = UtarRepository(
