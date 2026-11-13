@@ -353,13 +353,15 @@
 
                 items.forEach(item => {
                     const d = item.data;
+                    const blockTag = d.facultyBlock ? ` • 📍 ${escapeHtml(d.facultyBlock)}` : '';
+                    const wifiStatusTag = d.canConnectWifi === true ? ' • WiFi: Yes ✅' : d.canConnectWifi === false ? ' • WiFi: No ❌' : '';
                     const card = document.createElement("div");
                     card.className = "card";
                     card.innerHTML = `
                         <div class="meta-row">
-                            <span>📝 Student Feedback • ${new Date(Number(d.timestamp) || Date.now()).toLocaleString()}</span>
+                            <span>📝 Student Feedback${blockTag}${wifiStatusTag} • ${new Date(Number(d.timestamp) || Date.now()).toLocaleString()}</span>
                         </div>
-                        <div class="post-text">${escapeHtml(d.content || '')}</div>
+                        <div class="post-text">${escapeHtml(d.content || 'No text typed (Status report only)')}</div>
                         <div class="action-row">
                             <button class="btn-delete" onclick="deleteDocument('feedback', '${item.id}')">Delete Feedback 🗑️</button>
                         </div>

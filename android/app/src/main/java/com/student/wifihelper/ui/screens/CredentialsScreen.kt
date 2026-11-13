@@ -28,10 +28,14 @@ import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -77,6 +81,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.ui.draw.scale
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CredentialsScreen(
     config: UserConfig?,
@@ -424,14 +429,34 @@ fun CredentialsScreen(
             }
         }
 
-        // Feedback & Bug Report Card
+        // Official UTAR Faculty & Block Location Feedback Card
         var feedbackText by remember { mutableStateOf("") }
+        var canConnectWifi by remember { mutableStateOf<Boolean?>(null) }
+        var selectedFacultyBlock by remember { mutableStateOf("") }
         var isSubmittingFeedback by remember { mutableStateOf(false) }
+
+        val utarFacultyBlocks = remember {
+            listOf(
+                "CFS (Block A)",
+                "FSc (Block D)",
+                "FEGT (Block E)",
+                "THP FBF (Block H)",
+                "FICT (Block N)",
+                "FAS/FEd/FCS (Block P)",
+                "Pavilion I & II (Block L/M)",
+                "Ling Liong Sik Hall",
+                "Main Library (Zone G)",
+                "Sports Complex / Hospital",
+                "Sg Long Campus",
+                "Other Campus Area"
+            )
+        }
 
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(20.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, ProOutline),
+            border = androidx.compose.foundation.BorderStroke(1.dp, ProPurplePrimary.copy(alpha = 0.25f)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
@@ -447,7 +472,7 @@ fun CredentialsScreen(
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        text = "Feedback & Bug Report",
+                        text = "Campus Wi-Fi & Bug Feedback",
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
                         color = MaterialTheme.colorScheme.onBackground
@@ -455,18 +480,81 @@ fun CredentialsScreen(
                 }
 
                 Text(
-                    text = "Facing an issue or have a feature suggestion? Let us know so we can improve the app for you!",
+                    text = "Report Wi-Fi status or campus issues so we can improve connection coverage for your faculty!",
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
+                // 1. Can connect Wi-Fi chips
+                Text(
+                    text = "Can you connect to UTAR Wi-Fi right now?",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    FilterChip(
+                        selected = canConnectWifi == true,
+                        onClick = { canConnectWifi = true },
+                        label = { Text("Yes ✅", fontSize = 12.sp, fontWeight = FontWeight.Bold) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = ProPurpleContainer,
+                            selectedLabelColor = ProPurpleOnContainer
+                        )
+                    )
+
+                    FilterChip(
+                        selected = canConnectWifi == false,
+                        onClick = { canConnectWifi = false },
+                        label = { Text("No ❌", fontSize = 12.sp, fontWeight = FontWeight.Bold) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.errorContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                    )
+                }
+
+                // 2. Official Faculty & Block Selection (Expands if Yes or selected)
+                if (canConnectWifi == true || selectedFacultyBlock.isNotEmpty()) {
+                    Text(
+                        text = "Which UTAR Faculty / Block are you at?",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        utarFacultyBlocks.forEach { block ->
+                            val isSelected = selectedFacultyBlock == block
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = { selectedFacultyBlock = if (isSelected) "" else block },
+                                label = { Text(block, fontSize = 11.sp, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = ProPurpleContainer,
+                                    selectedLabelColor = ProPurpleOnContainer
+                                )
+                            )
+                        }
+                    }
+                }
+
+                // 3. Text area
                 OutlinedTextField(
                     value = feedbackText,
                     onValueChange = { feedbackText = it },
-                    placeholder = { Text("Write your feedback or issue report here...", fontSize = 13.sp) },
+                    placeholder = { Text("Write optional details, suggestions, or issue report...", fontSize = 13.sp) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(100.dp),
+                        .height(90.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = ProPurplePrimary,
@@ -477,16 +565,24 @@ fun CredentialsScreen(
                 Button(
                     onClick = {
                         val text = feedbackText.trim()
-                        if (text.isNotBlank()) {
+                        val hasStatus = canConnectWifi != null
+                        if (text.isNotBlank() || hasStatus || selectedFacultyBlock.isNotBlank()) {
                             isSubmittingFeedback = true
                             scope.launch {
                                 try {
                                     val docId = java.util.UUID.randomUUID().toString()
-                                    val data = mapOf(
+                                    val data = mutableMapOf<String, Any>(
                                         "id" to docId,
                                         "content" to text,
                                         "timestamp" to System.currentTimeMillis()
                                     )
+                                    if (canConnectWifi != null) {
+                                        data["canConnectWifi"] = canConnectWifi!!
+                                    }
+                                    if (selectedFacultyBlock.isNotBlank()) {
+                                        data["facultyBlock"] = selectedFacultyBlock
+                                    }
+
                                     com.google.firebase.firestore.FirebaseFirestore.getInstance()
                                         .collection("feedback")
                                         .document(docId)
@@ -494,11 +590,13 @@ fun CredentialsScreen(
                                 } catch (e: Exception) {}
                                 isSubmittingFeedback = false
                                 feedbackText = ""
-                                snackbarHostState.showSnackbar("Thank you! Your feedback has been received.")
+                                canConnectWifi = null
+                                selectedFacultyBlock = ""
+                                snackbarHostState.showSnackbar("Thank you! Your campus feedback has been received.")
                             }
                         }
                     },
-                    enabled = feedbackText.trim().isNotBlank() && !isSubmittingFeedback,
+                    enabled = (feedbackText.trim().isNotBlank() || canConnectWifi != null || selectedFacultyBlock.isNotBlank()) && !isSubmittingFeedback,
                     colors = ButtonDefaults.buttonColors(containerColor = ProPurplePrimary),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
