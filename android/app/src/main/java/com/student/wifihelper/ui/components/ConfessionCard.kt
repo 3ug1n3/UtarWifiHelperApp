@@ -254,6 +254,12 @@ fun ConfessionCard(
                             val percentageInt = (percentageFloat * 100).toInt()
                             val isVoted = poll.userVotedOptionIndex == index
 
+                            val animatedProgress by animateFloatAsState(
+                                targetValue = percentageFloat,
+                                animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy),
+                                label = "pollProgress"
+                            )
+
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -282,7 +288,7 @@ fun ConfessionCard(
                                     )
                                 }
                                 LinearProgressIndicator(
-                                    progress = { percentageFloat },
+                                    progress = { animatedProgress },
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(6.dp)
