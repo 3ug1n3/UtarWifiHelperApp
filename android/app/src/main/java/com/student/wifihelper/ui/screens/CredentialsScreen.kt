@@ -446,8 +446,6 @@ fun CredentialsScreen(
                 "Pavilion I & II (Block L/M)",
                 "Ling Liong Sik Hall",
                 "Main Library (Zone G)",
-                "Sports Complex / Hospital",
-                "Sg Long Campus",
                 "Other Campus Area"
             )
         }
