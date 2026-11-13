@@ -251,7 +251,7 @@
         window.rejectPost = async (id) => {
             if (confirm("Are you sure you want to reject and delete this post?")) {
                 try {
-                    await deleteDoc(doc(doc(db, "confessions", id)));
+                    await deleteDoc(doc(db, "confessions", id));
                     alert("🗑️ Post Deleted.");
                 } catch(e) { alert("Error: " + e.message); }
             }
@@ -352,6 +352,30 @@
             });
         }
 
+        function renderPollHtml(poll) {
+            if (!poll || !poll.question || !poll.options) return '';
+            let optionsHtml = '';
+            const totalVotes = (poll.voteCounts || []).reduce((a, b) => a + b, 0) || 1;
+
+            (poll.options || []).forEach((opt, idx) => {
+                const votes = (poll.voteCounts && poll.voteCounts[idx]) ? poll.voteCounts[idx] : 0;
+                const pct = Math.round((votes / totalVotes) * 100);
+                optionsHtml += `
+                    <div style="background: rgba(124, 77, 255, 0.15); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; margin-top: 6px; display: flex; justify-content: space-between; font-size: 13px;">
+                        <span>✓ ${escapeHtml(opt)}</span>
+                        <span style="font-weight: bold; color: var(--primary);">${pct}% (${votes} votes)</span>
+                    </div>
+                `;
+            });
+
+            return `
+                <div style="background: #191428; border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 16px;">
+                    <div style="font-weight: bold; font-size: 14px; color: #D0BCFF; margin-bottom: 8px;">📊 Poll: ${escapeHtml(poll.question)}</div>
+                    ${optionsHtml}
+                </div>
+            `;
+        }
+
         function createPostCard(id, d, isPending) {
             const card = document.createElement("div");
             card.className = "card";
@@ -360,8 +384,9 @@
                     <span>#UTARConfession #${d.confessionNumber || 1} • ${new Date(d.timestamp || Date.now()).toLocaleString()}</span>
                     <span class="badge">${d.category || 'CAMPUS'}</span>
                 </div>
-                <div class="content">${escapeHtml(d.content || '')}</div>
+                <div class="post-text">${escapeHtml(d.content || '')}</div>
                 ${d.imageUrl ? `<img src="${d.imageUrl}" class="media-preview" />` : ''}
+                ${renderPollHtml(d.poll)}
                 <div class="action-row">
                     ${isPending ? `
                         <button class="btn-approve" onclick="approvePost('${id}')">Approve ✅</button>
