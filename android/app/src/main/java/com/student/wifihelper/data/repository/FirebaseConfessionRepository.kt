@@ -65,6 +65,9 @@ class FirebaseConfessionRepository : ConfessionRepository {
                         val likedIds = getLikedIds()
                         val list = snapshot.documents.mapNotNull { doc ->
                             try {
+                                val status = doc.getString("status") ?: "APPROVED"
+                                if (status != "APPROVED") return@mapNotNull null
+
                                 val id = doc.getString("id") ?: doc.id
                                 val confessionNumber = doc.getLong("confessionNumber")?.toInt() ?: 1000
                                 val content = doc.getString("content") ?: ""
@@ -198,6 +201,7 @@ class FirebaseConfessionRepository : ConfessionRepository {
                 "confessionNumber" to nextNumber,
                 "content" to content.trim(),
                 "category" to category.name,
+                "status" to "PENDING",
                 "timestamp" to System.currentTimeMillis(),
                 "likesCount" to 0,
                 "reportCount" to 0

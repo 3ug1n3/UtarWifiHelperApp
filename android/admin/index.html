@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTAR Confession Admin Moderation Portal</title>
+    <style>
+        :root {
+            --primary: #6750A4;
+            --bg: #0F0B1E;
+            --card-bg: #1E1A2B;
+            --text: #E6E1E5;
+            --green: #4CAF50;
+            --red: #F44336;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #332A4D;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        h1 { color: #D0BCFF; font-size: 24px; margin: 0; }
+        .card {
+            background: var(--card-bg);
+            border: 1px solid #332A4D;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .meta {
+            display: flex;
+            justify-content: space-between;
+            color: #CAC4D0;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+        .badge {
+            background: var(--primary);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .content {
+            font-size: 15px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            white-space: pre-wrap;
+        }
+        .img-preview {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 18px;
+            border-radius: 10px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-approve { background: var(--green); color: white; }
+        .btn-reject { background: var(--red); color: white; }
+        .login-box {
+            max-width: 360px;
+            margin: 100px auto;
+            text-align: center;
+        }
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #332A4D;
+            background: #141218;
+            color: white;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+    </style>
+    <!-- Firebase Web SDK v9 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+        // Firebase Config for utarconfession-38b6b
+        const firebaseConfig = {
+            apiKey: "AIzaSyDummyKey",
+            authDomain: "utarconfession-38b6b.firebaseapp.com",
+            projectId: "utarconfession-38b6b",
+            storageBucket: "utarconfession-38b6b.appspot.com",
+            messagingSenderId: "1000000000",
+            appId: "1:1000000000:web:dummy"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.approvePost = async (id) => {
+            try {
+                await updateDoc(doc(db, "confessions", id), { status: "APPROVED" });
+                alert("Post Approved! It is now live on the app.");
+            } catch(e) { alert("Error approving: " + e.message); }
+        };
+
+        window.rejectPost = async (id) => {
+            if (confirm("Are you sure you want to reject and delete this post?")) {
+                try {
+                    await deleteDoc(doc(db, "confessions", id));
+                    alert("Post Rejected & Deleted.");
+                } catch(e) { alert("Error rejecting: " + e.message); }
+            }
+        };
+
+        window.checkPassword = () => {
+            const pass = document.getElementById("admin-pass").value;
+            if (pass === "utaradmin123" || pass === "admin") {
+                document.getElementById("login-sec").style.display = "none";
+                document.getElementById("main-sec").style.display = "block";
+                loadPendingConfessions();
+            } else {
+                alert("Incorrect Admin Password!");
+            }
+        };
+
+        function loadPendingConfessions() {
+            const q = query(collection(db, "confessions"), where("status", "==", "PENDING"));
+            onSnapshot(q, (snapshot) => {
+                const listDiv = document.getElementById("pending-list");
+                listDiv.innerHTML = "";
+
+                if (snapshot.empty) {
+                    listDiv.innerHTML = "<div class='card'><p>🎉 No pending confessions for review! All clean.</p></div>";
+                    return;
+                }
+
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const id = docSnap.id;
+                    const dateStr = new Date(data.timestamp || Date.now()).toLocaleString();
+
+                    const card = document.createElement("div");
+                    card.className = "card";
+                    card.innerHTML = `
+                        <div class="meta">
+                            <span>#UTARConfession #${data.confessionNumber || 1} • ${dateStr}</span>
+                            <span class="badge">${data.category || 'CAMPUS'}</span>
+                        </div>
+                        <div class="content">${escapeHtml(data.content || '')}</div>
+                        ${data.imageUrl ? `<img src="${data.imageUrl}" class="img-preview" />` : ''}
+                        <div class="actions">
+                            <button class="btn-approve" onclick="approvePost('${id}')">Approve ✅</button>
+                            <button class="btn-reject" onclick="rejectPost('${id}')">Reject / Delete ❌</button>
+                        </div>
+                    `;
+                    listDiv.appendChild(card);
+                });
+            });
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Gate -->
+        <div id="login-sec" class="login-box card">
+            <h2>🛡️ UTAR Admin Portal</h2>
+            <p>Enter Admin Password to review student confessions:</p>
+            <input type="password" id="admin-pass" placeholder="Admin Password (e.g. utaradmin123)" />
+            <button class="btn-approve" style="width: 100%;" onclick="checkPassword()">Login to Portal</button>
+        </div>
+
+        <!-- Main Moderation Section -->
+        <div id="main-sec" style="display: none;">
+            <header>
+                <h1>🛡️ UTAR Confession Admin Portal</h1>
+                <span class="badge">Live Firestore Sync</span>
+            </header>
+
+            <h3>⏳ Pending Student Confessions for Review:</h3>
+            <div id="pending-list">
+                <div class="card"><p>Loading pending posts...</p></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

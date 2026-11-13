@@ -181,7 +181,7 @@ class ConfessionViewModel(application: Application) : AndroidViewModel(applicati
             _isSubmitting.value = false
             if (result.isSuccess) {
                 lastPostTimestamp = System.currentTimeMillis()
-                _toastMessage.value = "Confession submitted successfully!"
+                _toastMessage.value = "Confession submitted for moderation! It will appear on the feed after admin approval."
                 closeCreateDialog()
             } else {
                 _toastMessage.value = "Failed to submit confession. Please try again."
