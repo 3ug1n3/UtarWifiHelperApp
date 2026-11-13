@@ -285,7 +285,7 @@
 
                 const items = [];
                 snapshot.forEach(docSnap => items.push({ id: docSnap.id, data: docSnap.data() }));
-                items.sort((a, b) => (b.data.timestamp || 0) - (a.data.timestamp || 0));
+                items.sort((a, b) => (Number(b.data.timestamp) || 0) - (Number(a.data.timestamp) || 0));
 
                 items.forEach(item => {
                     container.appendChild(createPostCard(item.id, item.data, true));
@@ -306,7 +306,7 @@
                         items.push({ id: docSnap.id, data: d });
                     }
                 });
-                items.sort((a, b) => (b.data.timestamp || 0) - (a.data.timestamp || 0));
+                items.sort((a, b) => (Number(b.data.timestamp) || 0) - (Number(a.data.timestamp) || 0));
 
                 items.forEach(item => {
                     container.appendChild(createPostCard(item.id, item.data, false));
@@ -322,7 +322,7 @@
 
                 const items = [];
                 snapshot.forEach(docSnap => items.push({ id: docSnap.id, data: docSnap.data() }));
-                items.sort((a, b) => (b.data.timestamp || 0) - (a.data.timestamp || 0));
+                items.sort((a, b) => (Number(b.data.timestamp) || 0) - (Number(a.data.timestamp) || 0));
 
                 items.forEach(item => {
                     const d = item.data;
@@ -330,7 +330,7 @@
                     card.className = "card";
                     card.innerHTML = `
                         <div class="meta-row">
-                            <span>🚩 Reported Post #${d.confessionNumber || 1} • ${new Date(d.timestamp || Date.now()).toLocaleString()}</span>
+                            <span>🚩 Reported Post #${d.confessionNumber || 1} • ${new Date(Number(d.timestamp) || Date.now()).toLocaleString()}</span>
                         </div>
                         <div class="post-text" style="color: var(--accent-red);"><strong>Reason:</strong> ${escapeHtml(d.reason || 'No reason specified')}</div>
                         <div class="post-text"><strong>Original Text:</strong> "${escapeHtml(d.contentPreview || '')}"</div>
@@ -349,7 +349,7 @@
 
                 const items = [];
                 snapshot.forEach(docSnap => items.push({ id: docSnap.id, data: docSnap.data() }));
-                items.sort((a, b) => (b.data.timestamp || 0) - (a.data.timestamp || 0));
+                items.sort((a, b) => (Number(b.data.timestamp) || 0) - (Number(a.data.timestamp) || 0));
 
                 items.forEach(item => {
                     const d = item.data;
@@ -357,7 +357,7 @@
                     card.className = "card";
                     card.innerHTML = `
                         <div class="meta-row">
-                            <span>📝 Student Feedback • ${new Date(d.timestamp || Date.now()).toLocaleString()}</span>
+                            <span>📝 Student Feedback • ${new Date(Number(d.timestamp) || Date.now()).toLocaleString()}</span>
                         </div>
                         <div class="post-text">${escapeHtml(d.content || '')}</div>
                         <div class="action-row">
@@ -398,7 +398,7 @@
             card.className = "card";
             card.innerHTML = `
                 <div class="meta-row">
-                    <span>#UTARConfession #${d.confessionNumber || 1} • ${new Date(d.timestamp || Date.now()).toLocaleString()}</span>
+                    <span>#UTARConfession #${d.confessionNumber || 1} • ${new Date(Number(d.timestamp) || Date.now()).toLocaleString()}</span>
                     <span class="badge">${d.category || 'CAMPUS'}</span>
                 </div>
                 <div class="post-text">${escapeHtml(d.content || '')}</div>
