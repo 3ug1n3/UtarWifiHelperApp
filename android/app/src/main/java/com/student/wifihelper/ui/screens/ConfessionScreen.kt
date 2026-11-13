@@ -8,6 +8,7 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
@@ -53,6 +54,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -249,6 +251,11 @@ fun ConfessionScreen(
                             ) {
                                 items(ConfessionCategory.entries.toTypedArray()) { category ->
                                     val isSelected = selectedCategory == category
+                                    val chipScale by animateFloatAsState(
+                                        targetValue = if (isSelected) 1.05f else 1.0f,
+                                        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+                                        label = "chipScale"
+                                    )
                                     FilterChip(
                                         selected = isSelected,
                                         onClick = {
@@ -266,7 +273,8 @@ fun ConfessionScreen(
                                             selectedContainerColor = ProPurpleContainer,
                                             selectedLabelColor = ProPurpleOnContainer
                                         ),
-                                        shape = CircleShape
+                                        shape = CircleShape,
+                                        modifier = Modifier.scale(chipScale)
                                     )
                                 }
                             }

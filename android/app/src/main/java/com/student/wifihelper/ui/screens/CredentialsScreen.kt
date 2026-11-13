@@ -2,7 +2,10 @@ package com.student.wifihelper.ui.screens
 
 import android.content.Intent
 import android.widget.Toast
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -206,6 +209,12 @@ fun CredentialsScreen(
                         Icon(Icons.Default.Lock, contentDescription = null, tint = ProPurplePrimary)
                     },
                     trailingIcon = {
+                        val eyeRotation by animateFloatAsState(
+                            targetValue = if (passwordVisible) 180f else 0f,
+                            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+                            label = "eyeRotation"
+                        )
+
                         IconButton(onClick = {
                             if (biometricLockEnabled && !passwordVisible) {
                                 val activity = context as? androidx.fragment.app.FragmentActivity
@@ -225,7 +234,8 @@ fun CredentialsScreen(
                         }) {
                             Icon(
                                 imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                contentDescription = null
+                                contentDescription = null,
+                                modifier = Modifier.graphicsLayer(rotationZ = eyeRotation)
                             )
                         }
                     },

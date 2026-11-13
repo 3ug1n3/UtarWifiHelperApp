@@ -19,6 +19,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -153,7 +156,8 @@ fun ConfessionCommentsSheet(
                                 Column(modifier = Modifier.weight(1f)) {
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
                                             text = "Anonymous Student",
@@ -168,11 +172,55 @@ fun ConfessionCommentsSheet(
                                         )
                                     }
                                     Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = comment.content,
-                                        fontSize = 13.sp,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = comment.content,
+                                            fontSize = 13.sp,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            modifier = Modifier.weight(1f)
+                                        )
+
+                                        var isCommentLiked by remember { mutableStateOf(false) }
+                                        var commentLikesCount by remember { mutableIntStateOf(0) }
+
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.padding(start = 4.dp)
+                                        ) {
+                                            IconButton(
+                                                onClick = {
+                                                    if (isCommentLiked) {
+                                                        isCommentLiked = false
+                                                        commentLikesCount = (commentLikesCount - 1).coerceAtLeast(0)
+                                                    } else {
+                                                        isCommentLiked = true
+                                                        commentLikesCount++
+                                                    }
+                                                },
+                                                modifier = Modifier.size(24.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = if (isCommentLiked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                                                    contentDescription = "Like Comment",
+                                                    tint = if (isCommentLiked) Color(0xFFE91E63) else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    modifier = Modifier.size(13.dp)
+                                                )
+                                            }
+                                            if (commentLikesCount > 0) {
+                                                Text(
+                                                    text = "$commentLikesCount",
+                                                    fontSize = 10.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = Color(0xFFE91E63),
+                                                    modifier = Modifier.padding(start = 2.dp)
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }

@@ -2,7 +2,11 @@ package com.student.wifihelper.ui.games
 
 import android.content.Intent
 import android.widget.Toast
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.draw.scale
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.outlined.Share
@@ -212,8 +216,16 @@ fun GameCenterScreen(
                             }
                         }
 
+                        var isAdPressed by remember { mutableStateOf(false) }
+                        val adScale by animateFloatAsState(
+                            targetValue = if (isAdPressed) 0.95f else 1.0f,
+                            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+                            label = "adScale"
+                        )
+
                         Button(
                             onClick = {
+                                isAdPressed = true
                                 val activity = context as? android.app.Activity
                                 if (rewardedAd != null && activity != null) {
                                     rewardedAd?.show(activity) { _ ->
@@ -242,7 +254,8 @@ fun GameCenterScreen(
                                 }
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = ProPurplePrimary),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.scale(adScale)
                         ) {
                             Icon(imageVector = Icons.Outlined.Videocam, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(4.dp))
