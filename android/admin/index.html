@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UTAR Helper App - Master Admin Portal</title>
+    <title>UTAR Helper App - Master Admin Portal v3.0</title>
     <style>
         :root {
             --primary: #7C4DFF;
@@ -16,6 +16,7 @@
             --accent-green: #00E676;
             --accent-red: #FF5252;
             --accent-yellow: #FFD600;
+            --accent-cyan: #00E5FF;
             --border: #322A4E;
         }
 
@@ -32,7 +33,7 @@
 
         /* Sidebar Navigation */
         .sidebar {
-            width: 260px;
+            width: 270px;
             background: var(--surface);
             border-right: 1px solid var(--border);
             display: flex;
@@ -78,13 +79,15 @@
         }
 
         header {
-            height: 70px;
+            min-height: 70px;
             background: var(--surface);
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 30px;
+            padding: 15px 30px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         .header-title { font-size: 18px; font-weight: bold; }
@@ -96,6 +99,16 @@
             font-size: 12px;
             font-weight: bold;
             border: 1px solid rgba(0, 230, 118, 0.3);
+        }
+
+        .search-box {
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: #141218;
+            color: white;
+            font-size: 13px;
+            width: 240px;
         }
 
         .content-body { padding: 30px; }
@@ -158,7 +171,7 @@
             border: 1px solid var(--border);
         }
 
-        .action-row { display: flex; gap: 12px; }
+        .action-row { display: flex; gap: 12px; flex-wrap: wrap; }
 
         button {
             padding: 10px 20px;
@@ -173,6 +186,7 @@
         }
         .btn-approve { background: var(--accent-green); color: #003816; }
         .btn-reject { background: var(--accent-red); color: #3E0000; }
+        .btn-export { background: var(--accent-cyan); color: #00363A; }
         .btn-delete { background: rgba(255, 82, 82, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
 
         /* Login Modal */
@@ -205,7 +219,7 @@
         @media (max-width: 768px) {
             body { flex-direction: column; overflow-y: auto; }
             .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
-            header { padding: 0 15px; }
+            header { padding: 15px; }
             .content-body { padding: 15px; }
         }
     </style>
@@ -227,6 +241,7 @@
         const db = getFirestore(app);
 
         let activeTab = "pending";
+        let rawPending = [], rawApproved = [], rawReports = [], rawFeedback = [];
 
         window.switchTab = (tabName) => {
             activeTab = tabName;
@@ -239,7 +254,37 @@
             document.getElementById("sec-feedback").style.display = tabName === "feedback" ? "block" : "none";
 
             document.getElementById("page-title").innerText = tabName.toUpperCase() + " DASHBOARD";
+            filterCurrentTab();
         };
+
+        window.filterCurrentTab = () => {
+            const term = document.getElementById("search-input").value.toLowerCase().trim();
+            if (activeTab === "pending") renderPending(term);
+            else if (activeTab === "approved") renderApproved(term);
+            else if (activeTab === "reports") renderReports(term);
+            else if (activeTab === "feedback") renderFeedback(term);
+        };
+
+        window.exportFeedbackCSV = () => {
+            if (!rawFeedback.length) return alert("No feedback data to export.");
+            let csv = "ID,Faculty Block,Can Connect WiFi,Content,Timestamp\n";
+            rawFeedback.forEach(item => {
+                const d = item.data;
+                const content = `"${(d.content || '').replace(/"/g, '""')}"`;
+                csv += `"${item.id}","${d.facultyBlock || ''}","${d.canConnectWifi ?? ''}",${content},"${new Date(Number(d.timestamp) || Date.now()).toLocaleString()}"\n`;
+            });
+            downloadCSV(csv, "utar_app_feedback_report.csv");
+        };
+
+        function downloadCSV(csvContent, filename) {
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
 
         window.approvePost = async (id) => {
             try {
@@ -277,95 +322,138 @@
         };
 
         function initLiveData() {
-            // Live Pending Posts (Sorted Newest First)
+            // Live Pending Posts
             onSnapshot(query(collection(db, "confessions"), where("status", "==", "PENDING")), (snapshot) => {
                 document.getElementById("cnt-pending").innerText = snapshot.size;
-                const container = document.getElementById("list-pending");
-                container.innerHTML = snapshot.empty ? "<div class='card'><p>🎉 No pending confessions for review!</p></div>" : "";
-
-                const items = [];
-                snapshot.forEach(docSnap => items.push({ id: docSnap.id, data: docSnap.data() }));
-                items.sort((a, b) => (Number(b.data.timestamp) || 0) - (Number(a.data.timestamp) || 0));
-
-                items.forEach(item => {
-                    container.appendChild(createPostCard(item.id, item.data, true));
-                });
+                rawPending = [];
+                snapshot.forEach(docSnap => rawPending.push({ id: docSnap.id, data: docSnap.data() }));
+                rawPending.sort((a, b) => (Number(b.data.timestamp) || 0) - (Number(a.data.timestamp) || 0));
+                renderPending();
             });
 
-            // Live Approved Posts (Sorted Newest First)
+            // Live Approved Posts
             onSnapshot(query(collection(db, "confessions")), (snapshot) => {
                 let count = 0;
-                const container = document.getElementById("list-approved");
-                container.innerHTML = "";
-
-                const items = [];
+                rawApproved = [];
                 snapshot.forEach(docSnap => {
                     const d = docSnap.data();
                     if ((d.status || "APPROVED") === "APPROVED") {
                         count++;
-                        items.push({ id: docSnap.id, data: d });
+                        rawApproved.push({ id: docSnap.id, data: d });
                     }
                 });
-                items.sort((a, b) => (Number(b.data.timestamp) || 0) - (Number(a.data.timestamp) || 0));
-
-                items.forEach(item => {
-                    container.appendChild(createPostCard(item.id, item.data, false));
-                });
+                rawApproved.sort((a, b) => (Number(b.data.timestamp) || 0) - (Number(a.data.timestamp) || 0));
                 document.getElementById("cnt-approved").innerText = count;
+                renderApproved();
             });
 
-            // Live Reports (Sorted Newest First)
+            // Live Reports
             onSnapshot(collection(db, "reports"), (snapshot) => {
                 document.getElementById("cnt-reports").innerText = snapshot.size;
-                const container = document.getElementById("list-reports");
-                container.innerHTML = snapshot.empty ? "<div class='card'><p>✅ Zero reported posts!</p></div>" : "";
-
-                const items = [];
-                snapshot.forEach(docSnap => items.push({ id: docSnap.id, data: docSnap.data() }));
-                items.sort((a, b) => (Number(b.data.timestamp) || 0) - (Number(a.data.timestamp) || 0));
-
-                items.forEach(item => {
-                    const d = item.data;
-                    const card = document.createElement("div");
-                    card.className = "card";
-                    card.innerHTML = `
-                        <div class="meta-row">
-                            <span>🚩 Reported Post #${d.confessionNumber || 1} • ${new Date(Number(d.timestamp) || Date.now()).toLocaleString()}</span>
-                        </div>
-                        <div class="post-text" style="color: var(--accent-red);"><strong>Reason:</strong> ${escapeHtml(d.reason || 'No reason specified')}</div>
-                        <div class="post-text"><strong>Original Text:</strong> "${escapeHtml(d.contentPreview || '')}"</div>
-                        <div class="action-row">
-                            <button class="btn-delete" onclick="deleteDocument('reports', '${item.id}')">Dismiss Report 🗑️</button>
-                        </div>
-                    `;
-                    container.appendChild(card);
-                });
+                rawReports = [];
+                snapshot.forEach(docSnap => rawReports.push({ id: docSnap.id, data: docSnap.data() }));
+                rawReports.sort((a, b) => (Number(b.data.timestamp) || 0) - (Number(a.data.timestamp) || 0));
+                renderReports();
             });
 
-            // Live Feedback (Sorted Newest First at Top!)
+            // Live Feedback
             onSnapshot(collection(db, "feedback"), (snapshot) => {
-                const container = document.getElementById("list-feedback");
-                container.innerHTML = snapshot.empty ? "<div class='card'><p>📝 No student feedback yet.</p></div>" : "";
+                rawFeedback = [];
+                snapshot.forEach(docSnap => rawFeedback.push({ id: docSnap.id, data: docSnap.data() }));
+                rawFeedback.sort((a, b) => (Number(b.data.timestamp) || 0) - (Number(a.data.timestamp) || 0));
+                renderFeedback();
+            });
+        }
 
-                const items = [];
-                snapshot.forEach(docSnap => items.push({ id: docSnap.id, data: docSnap.data() }));
-                items.sort((a, b) => (Number(b.data.timestamp) || 0) - (Number(a.data.timestamp) || 0));
+        function renderPending(term = "") {
+            const container = document.getElementById("list-pending");
+            container.innerHTML = "";
+            const filtered = rawPending.filter(i => (i.data.content || '').toLowerCase().includes(term) || (i.data.category || '').toLowerCase().includes(term));
+            if (!filtered.length) {
+                container.innerHTML = "<div class='card'><p>🎉 No pending confessions matching criteria!</p></div>";
+                return;
+            }
+            filtered.forEach(item => container.appendChild(createPostCard(item.id, item.data, true)));
+        }
 
-                items.forEach(item => {
-                    const d = item.data;
-                    const card = document.createElement("div");
-                    card.className = "card";
-                    card.innerHTML = `
-                        <div class="meta-row">
-                            <span>📝 Student Feedback • ${new Date(Number(d.timestamp) || Date.now()).toLocaleString()}</span>
-                        </div>
-                        <div class="post-text">${escapeHtml(d.content || '')}</div>
-                        <div class="action-row">
-                            <button class="btn-delete" onclick="deleteDocument('feedback', '${item.id}')">Delete Feedback 🗑️</button>
-                        </div>
-                    `;
-                    container.appendChild(card);
-                });
+        function renderApproved(term = "") {
+            const container = document.getElementById("list-approved");
+            container.innerHTML = "";
+            const filtered = rawApproved.filter(i => (i.data.content || '').toLowerCase().includes(term) || (i.data.category || '').toLowerCase().includes(term));
+            if (!filtered.length) {
+                container.innerHTML = "<div class='card'><p>No live approved posts matching criteria.</p></div>";
+                return;
+            }
+            filtered.forEach(item => container.appendChild(createPostCard(item.id, item.data, false)));
+        }
+
+        function renderReports(term = "") {
+            const container = document.getElementById("list-reports");
+            container.innerHTML = "";
+            const filtered = rawReports.filter(i => (i.data.reason || '').toLowerCase().includes(term) || (i.data.contentPreview || '').toLowerCase().includes(term));
+            if (!filtered.length) {
+                container.innerHTML = "<div class='card'><p>✅ Zero reported posts!</p></div>";
+                return;
+            }
+            filtered.forEach(item => {
+                const d = item.data;
+                const card = document.createElement("div");
+                card.className = "card";
+                card.innerHTML = `
+                    <div class="meta-row">
+                        <span>🚩 Reported Post #${d.confessionNumber || 1} • ${new Date(Number(d.timestamp) || Date.now()).toLocaleString()}</span>
+                    </div>
+                    <div class="post-text" style="color: var(--accent-red);"><strong>Reason:</strong> ${escapeHtml(d.reason || 'No reason specified')}</div>
+                    <div class="post-text"><strong>Original Text:</strong> "${escapeHtml(d.contentPreview || '')}"</div>
+                    <div class="action-row">
+                        <button class="btn-delete" onclick="deleteDocument('reports', '${item.id}')">Dismiss Report 🗑️</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderFeedback(term = "") {
+            const container = document.getElementById("list-feedback");
+            container.innerHTML = "";
+
+            const filtered = rawFeedback.filter(i => (i.data.content || '').toLowerCase().includes(term) || (i.data.facultyBlock || '').toLowerCase().includes(term));
+            if (!filtered.length) {
+                container.innerHTML = "<div class='card'><p>📝 No student feedback matching criteria.</p></div>";
+                return;
+            }
+
+            // Summary Header with Export Button
+            const summaryDiv = document.createElement("div");
+            summaryDiv.className = "card";
+            summaryDiv.style.background = "#191428";
+            summaryDiv.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h4 style="margin: 0; color: #D0BCFF;">📊 Student Feedback & Campus Wi-Fi Reports (${filtered.length})</h4>
+                        <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--text-sub);">Review campus block Wi-Fi coverage reports submitted by students.</p>
+                    </div>
+                    <button class="btn-export" onclick="exportFeedbackCSV()">Export to CSV 📥</button>
+                </div>
+            `;
+            container.appendChild(summaryDiv);
+
+            filtered.forEach(item => {
+                const d = item.data;
+                const blockTag = d.facultyBlock ? ` • 📍 ${escapeHtml(d.facultyBlock)}` : '';
+                const wifiStatusTag = d.canConnectWifi === true ? ' • WiFi: Yes ✅' : d.canConnectWifi === false ? ' • WiFi: No ❌' : '';
+                const card = document.createElement("div");
+                card.className = "card";
+                card.innerHTML = `
+                    <div class="meta-row">
+                        <span>📝 Student Feedback${blockTag}${wifiStatusTag} • ${new Date(Number(d.timestamp) || Date.now()).toLocaleString()}</span>
+                    </div>
+                    <div class="post-text">${escapeHtml(d.content || 'No text typed (Status report only)')}</div>
+                    <div class="action-row">
+                        <button class="btn-delete" onclick="deleteDocument('feedback', '${item.id}')">Delete Feedback 🗑️</button>
+                    </div>
+                `;
+                container.appendChild(card);
             });
         }
 
@@ -454,7 +542,10 @@
     <div class="main-content">
         <header>
             <div id="page-title" class="header-title">PENDING DASHBOARD</div>
-            <span class="status-pill">● Live Firestore Sync</span>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <input type="text" id="search-input" class="search-box" placeholder="🔍 Search dashboard..." oninput="filterCurrentTab()" />
+                <span class="status-pill">● Live Firestore Sync</span>
+            </div>
         </header>
 
         <div class="content-body">
