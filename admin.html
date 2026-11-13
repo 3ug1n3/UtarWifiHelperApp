@@ -277,42 +277,55 @@
         };
 
         function initLiveData() {
-            // Live Pending Posts
+            // Live Pending Posts (Sorted Newest First)
             onSnapshot(query(collection(db, "confessions"), where("status", "==", "PENDING")), (snapshot) => {
                 document.getElementById("cnt-pending").innerText = snapshot.size;
                 const container = document.getElementById("list-pending");
                 container.innerHTML = snapshot.empty ? "<div class='card'><p>🎉 No pending confessions for review!</p></div>" : "";
 
-                snapshot.forEach(docSnap => {
-                    const d = docSnap.data();
-                    container.appendChild(createPostCard(docSnap.id, d, true));
+                const items = [];
+                snapshot.forEach(docSnap => items.push({ id: docSnap.id, data: docSnap.data() }));
+                items.sort((a, b) => (b.data.timestamp || 0) - (a.data.timestamp || 0));
+
+                items.forEach(item => {
+                    container.appendChild(createPostCard(item.id, item.data, true));
                 });
             });
 
-            // Live Approved Posts
+            // Live Approved Posts (Sorted Newest First)
             onSnapshot(query(collection(db, "confessions")), (snapshot) => {
                 let count = 0;
                 const container = document.getElementById("list-approved");
                 container.innerHTML = "";
 
+                const items = [];
                 snapshot.forEach(docSnap => {
                     const d = docSnap.data();
                     if ((d.status || "APPROVED") === "APPROVED") {
                         count++;
-                        container.appendChild(createPostCard(docSnap.id, d, false));
+                        items.push({ id: docSnap.id, data: d });
                     }
+                });
+                items.sort((a, b) => (b.data.timestamp || 0) - (a.data.timestamp || 0));
+
+                items.forEach(item => {
+                    container.appendChild(createPostCard(item.id, item.data, false));
                 });
                 document.getElementById("cnt-approved").innerText = count;
             });
 
-            // Live Reports
+            // Live Reports (Sorted Newest First)
             onSnapshot(collection(db, "reports"), (snapshot) => {
                 document.getElementById("cnt-reports").innerText = snapshot.size;
                 const container = document.getElementById("list-reports");
                 container.innerHTML = snapshot.empty ? "<div class='card'><p>✅ Zero reported posts!</p></div>" : "";
 
-                snapshot.forEach(docSnap => {
-                    const d = docSnap.data();
+                const items = [];
+                snapshot.forEach(docSnap => items.push({ id: docSnap.id, data: docSnap.data() }));
+                items.sort((a, b) => (b.data.timestamp || 0) - (a.data.timestamp || 0));
+
+                items.forEach(item => {
+                    const d = item.data;
                     const card = document.createElement("div");
                     card.className = "card";
                     card.innerHTML = `
@@ -322,20 +335,24 @@
                         <div class="post-text" style="color: var(--accent-red);"><strong>Reason:</strong> ${escapeHtml(d.reason || 'No reason specified')}</div>
                         <div class="post-text"><strong>Original Text:</strong> "${escapeHtml(d.contentPreview || '')}"</div>
                         <div class="action-row">
-                            <button class="btn-delete" onclick="deleteDocument('reports', '${docSnap.id}')">Dismiss Report 🗑️</button>
+                            <button class="btn-delete" onclick="deleteDocument('reports', '${item.id}')">Dismiss Report 🗑️</button>
                         </div>
                     `;
                     container.appendChild(card);
                 });
             });
 
-            // Live Feedback
+            // Live Feedback (Sorted Newest First at Top!)
             onSnapshot(collection(db, "feedback"), (snapshot) => {
                 const container = document.getElementById("list-feedback");
                 container.innerHTML = snapshot.empty ? "<div class='card'><p>📝 No student feedback yet.</p></div>" : "";
 
-                snapshot.forEach(docSnap => {
-                    const d = docSnap.data();
+                const items = [];
+                snapshot.forEach(docSnap => items.push({ id: docSnap.id, data: docSnap.data() }));
+                items.sort((a, b) => (b.data.timestamp || 0) - (a.data.timestamp || 0));
+
+                items.forEach(item => {
+                    const d = item.data;
                     const card = document.createElement("div");
                     card.className = "card";
                     card.innerHTML = `
@@ -344,7 +361,7 @@
                         </div>
                         <div class="post-text">${escapeHtml(d.content || '')}</div>
                         <div class="action-row">
-                            <button class="btn-delete" onclick="deleteDocument('feedback', '${docSnap.id}')">Delete Feedback 🗑️</button>
+                            <button class="btn-delete" onclick="deleteDocument('feedback', '${item.id}')">Delete Feedback 🗑️</button>
                         </div>
                     `;
                     container.appendChild(card);
