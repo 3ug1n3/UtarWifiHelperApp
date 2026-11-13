@@ -158,14 +158,14 @@ fun UtarApp(
                             modifier = Modifier
                                 .size(40.dp)
                                 .clip(CircleShape)
-                                .background(ProPurplePrimary),
+                                .background(ProPurpleContainer),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Wifi,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(22.dp)
+                                painter = androidx.compose.ui.res.painterResource(R.mipmap.ic_launcher),
+                                contentDescription = "App Logo",
+                                tint = Color.Unspecified,
+                                modifier = Modifier.size(28.dp)
                             )
                         }
                         Spacer(modifier = Modifier.width(12.dp))

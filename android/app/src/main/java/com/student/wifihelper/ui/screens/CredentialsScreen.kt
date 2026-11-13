@@ -474,61 +474,36 @@ fun CredentialsScreen(
                     )
                 )
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                Button(
+                    onClick = {
+                        val text = feedbackText.trim()
+                        if (text.isNotBlank()) {
+                            isSubmittingFeedback = true
+                            scope.launch {
+                                try {
+                                    val docId = java.util.UUID.randomUUID().toString()
+                                    val data = mapOf(
+                                        "id" to docId,
+                                        "content" to text,
+                                        "timestamp" to System.currentTimeMillis()
+                                    )
+                                    com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                                        .collection("feedback")
+                                        .document(docId)
+                                        .set(data)
+                                } catch (e: Exception) {}
+                                isSubmittingFeedback = false
+                                feedbackText = ""
+                                snackbarHostState.showSnackbar("Thank you! Your feedback has been received.")
+                            }
+                        }
+                    },
+                    enabled = feedbackText.trim().isNotBlank() && !isSubmittingFeedback,
+                    colors = ButtonDefaults.buttonColors(containerColor = ProPurplePrimary),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Button(
-                        onClick = {
-                            val text = feedbackText.trim()
-                            if (text.isNotBlank()) {
-                                isSubmittingFeedback = true
-                                scope.launch {
-                                    try {
-                                        val docId = java.util.UUID.randomUUID().toString()
-                                        val data = mapOf(
-                                            "id" to docId,
-                                            "content" to text,
-                                            "timestamp" to System.currentTimeMillis()
-                                        )
-                                        com.google.firebase.firestore.FirebaseFirestore.getInstance()
-                                            .collection("feedback")
-                                            .document(docId)
-                                            .set(data)
-                                    } catch (e: Exception) {}
-                                    isSubmittingFeedback = false
-                                    feedbackText = ""
-                                    snackbarHostState.showSnackbar("Thank you! Your feedback has been received.")
-                                }
-                            }
-                        },
-                        enabled = feedbackText.trim().isNotBlank() && !isSubmittingFeedback,
-                        colors = ButtonDefaults.buttonColors(containerColor = ProPurplePrimary),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(if (isSubmittingFeedback) "Submitting..." else "Submit Cloud", fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                    }
-
-                    Button(
-                        onClick = {
-                            val text = feedbackText.trim()
-                            try {
-                                val encodedSubject = android.net.Uri.encode("UTAR WiFi Helper App Feedback")
-                                val encodedBody = android.net.Uri.encode(if (text.isNotBlank()) text else "App Feedback")
-                                val mailUri = android.net.Uri.parse("mailto:01110708861.my@gmail.com?subject=$encodedSubject&body=$encodedBody")
-                                val intent = Intent(Intent.ACTION_SENDTO, mailUri)
-                                context.startActivity(intent)
-                            } catch (e: Exception) {
-                                Toast.makeText(context, "No email app found on device", Toast.LENGTH_SHORT).show()
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = ProPurpleContainer, contentColor = ProPurpleOnContainer),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Send Email", fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                    }
+                    Text(if (isSubmittingFeedback) "Submitting..." else "Submit", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 }
             }
         }

@@ -134,7 +134,7 @@ fun AnimatedSplashScreen() {
                         )
                 ) {}
 
-                // Center Icon Container
+                // Center Icon Container with Official App Logo
                 Surface(
                     shape = CircleShape,
                     color = ProPurpleContainer,
@@ -145,10 +145,10 @@ fun AnimatedSplashScreen() {
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
-                            imageVector = Icons.Default.Wifi,
-                            contentDescription = "App Icon",
-                            tint = ProPurplePrimary,
-                            modifier = Modifier.size(52.dp)
+                            painter = androidx.compose.ui.res.painterResource(R.mipmap.ic_launcher),
+                            contentDescription = "App Logo",
+                            tint = Color.Unspecified,
+                            modifier = Modifier.size(56.dp)
                         )
                     }
                 }

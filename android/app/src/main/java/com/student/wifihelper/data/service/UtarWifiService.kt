@@ -54,6 +54,7 @@ class UtarWifiService : Service() {
                 startForegroundServiceWithNotification("Monitoring Campus WiFi network...")
                 registerNetworkCallback()
                 startPolling()
+                startCountdownTicker()
                 _isServiceRunning.value = true
             }
             ACTION_STOP -> {
@@ -169,9 +170,36 @@ class UtarWifiService : Service() {
         }
     }
 
+    private var tickerJob: Job? = null
+
+    private fun startCountdownTicker() {
+        tickerJob?.cancel()
+        tickerJob = serviceScope.launch {
+            while (isActive) {
+                delay(1000)
+                val config = repository.getConfig()
+                if (config.autoLoginEnabled && config.autoConnectRemainingSeconds > 0L) {
+                    val newSeconds = (config.autoConnectRemainingSeconds - 1L).coerceAtLeast(0L)
+                    val newEnabled = newSeconds > 0L
+                    val updated = config.copy(
+                        autoConnectRemainingSeconds = newSeconds,
+                        autoLoginEnabled = newEnabled
+                    )
+                    repository.saveConfig(updated)
+                    if (newSeconds == 0L) {
+                        repository.removeWifiNudge(updated.targetSsid)
+                        stopSelf()
+                    }
+                }
+            }
+        }
+    }
+
     private fun stopPolling() {
         pollingJob?.cancel()
         pollingJob = null
+        tickerJob?.cancel()
+        tickerJob = null
     }
 
     private suspend fun performCheckAndAutoLogin(triggerReason: String) {
