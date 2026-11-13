@@ -455,7 +455,7 @@ fun CredentialsScreen(
                 }
 
                 Text(
-                    text = "Facing an issue or have a feature suggestion? Feedback is sent directly to developer email (01110708861.my@gmail.com) & Firebase cloud!",
+                    text = "Facing an issue or have a feature suggestion? Let us know so we can improve the app for you!",
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
