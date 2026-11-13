@@ -241,11 +241,6 @@ fun ConfessionDetailSheet(
 
                             val totalVotes = poll.voteCounts.sum().coerceAtLeast(1)
 
-                            var isVotingLocked by remember { mutableStateOf(false) }
-                            LaunchedEffect(poll.voteCounts, poll.userVotedOptionIndex) {
-                                isVotingLocked = false
-                            }
-
                             poll.options.forEachIndexed { index, optionText ->
                                 val votes = poll.voteCounts.getOrElse(index) { 0 }
                                 val percentageFloat = votes.toFloat() / totalVotes.toFloat()
@@ -257,12 +252,7 @@ fun ConfessionDetailSheet(
                                         .fillMaxWidth()
                                         .padding(vertical = 4.dp)
                                         .clip(RoundedCornerShape(8.dp))
-                                        .clickable {
-                                            if (!isVotingLocked) {
-                                                isVotingLocked = true
-                                                onVotePoll(index)
-                                            }
-                                        }
+                                        .clickable { onVotePoll(index) }
                                 ) {
                                     Row(
                                         modifier = Modifier

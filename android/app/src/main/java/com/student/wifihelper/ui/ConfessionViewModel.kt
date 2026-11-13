@@ -218,19 +218,9 @@ class ConfessionViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    private val votingInProgressSet = mutableSetOf<String>()
-
     fun votePoll(confessionId: String, optionIndex: Int) {
-        if (votingInProgressSet.contains(confessionId)) return
-        votingInProgressSet.add(confessionId)
-
         viewModelScope.launch {
-            try {
-                confessionRepository.votePoll(confessionId, optionIndex)
-            } finally {
-                delay(800)
-                votingInProgressSet.remove(confessionId)
-            }
+            confessionRepository.votePoll(confessionId, optionIndex)
         }
     }
 
